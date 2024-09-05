@@ -1,12 +1,6 @@
-/*
-*This work is dual-licensed under BSD-3 and Apache License 2.0. 
-*You can choose between one of them if you use this work.
-*SPDX-License-Identifier: BSD-3-Clause OR Apache License 2.0
-*/
-
 #include "iaAcquireGesture.h"
 
-// Declare Quaternion raw data
+//Quaternion raw data
 quaternion QuatData_RightUpperArm, QuatData_head, QuatData_RightLowerArm, QuatData_Pelvis, QuatData_LeftUpperArm, QuatData_LeftLowerArm;
 quaternion QuatData_RightUpperLeg, QuatData_RightLowerLeg, QuatData_LeftUpperLeg, QuatData_LeftLowerLeg;
 
@@ -25,20 +19,25 @@ bool iaAcquireGesture::calibIMU;
 
 ofstream rawIMUDataFile;
 
-// Finding the values of quaternion height
 double quatHeight(quaternion data)
 {
+
 	double pi = 3.141592653589793238462643383279502884e+0;
+
 	double s;
-	double vectorM[3] = { 0,	0,	-1 };
+
+	//double vectorM[3];
+	double vectorM[3] = { 0, 0, -1 };
+
 	double Rotaxis_X, Rotaxis_Y, Rotaxis_Z;
 	double q0, q1, q2, q3;
-	double height;
 
 	q0 = data.mData[3];
 	q1 = data.mData[0];
 	q2 = data.mData[1];
 	q3 = data.mData[2];
+
+	double height;
 
 	Rotaxis_X = vectorM[0] * (2 * q0*q0 - 1 + 2 * q1* q1) + vectorM[1] * (2 * q2*q1 - 2 * q0* q3) + vectorM[2] * (2 * q1*q3 + 2 * q0* q2);
 	Rotaxis_Y = vectorM[0] * (2 * q1*q2 + 2 * q0*q3) + vectorM[1] * (2 * q0*q0 - 1 + 2 * q2*q2) + vectorM[2] * (2 * q2*q3 - 2 * q0*q1);
@@ -53,7 +52,7 @@ double quatHeight(quaternion data)
 	return Rotaxis_Z;
 }
 
-//Get the raw values
+// XsensIMU 장치로부터 받은 raw quatertnion data를 기반으로 아바타의 자세 데이터를 구성.
 Avatar iaAcquireGesture::getRawQ()
 {
 	bool DataAvailable = connectXS.newDataAvailable;
@@ -80,7 +79,7 @@ Avatar iaAcquireGesture::getRawQ()
 
 		rawAvatar = { QuatData_Pelvis, QuatData_head, QuatData_RightUpperArm,  QuatData_RightLowerArm,  QuatData_LeftUpperArm, QuatData_LeftLowerArm
 		, QuatData_RightUpperLeg, QuatData_RightLowerLeg, QuatData_LeftUpperLeg, QuatData_LeftLowerLeg };
-
+ 
 		return rawAvatar;
 	}
 	else
@@ -125,6 +124,7 @@ void iaAcquireGesture::caliberateQSF()
 		firstInvQuat_LeftLowerLeg = QuatData_LeftLowerLeg.Inverse();
 		std::cout << "Left Lower-Leg Quat:\t" << QuatData_LeftLowerLeg.mData[3] << "\t" << QuatData_LeftLowerLeg.mData[0] << "\t" << QuatData_LeftLowerLeg.mData[1] << "\t" << firstInvQuat_LeftLowerArm.mData[2] << std::endl;
 
+
 		//---------------------------------
 
 		time_t curr_time;
@@ -135,29 +135,31 @@ void iaAcquireGesture::caliberateQSF()
 
 		char fileName[1024];
 
+
 		sprintf_s(fileName, ".\\SkeletonData\\CalibIMUData-00%d-%d%d%d.txt", 0, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
 		avatarDataFile.open(fileName);
 
 		avatarDataFile << "FULLBODY\t" << 1 << "\n" << "Frames:" << "\t" << 0 << "\n";
 		
 			avatarDataFile
-				<< firstPlvCalib.mData[3] << "\t" << firstPlvCalib.mData[0] << "\t" << firstPlvCalib.mData[1] << "\t" << firstPlvCalib.mData[2] << "\t"
-				<< firstHeadCalib.mData[3] << "\t" << firstHeadCalib.mData[0] << "\t" << firstHeadCalib.mData[1] << "\t" << firstHeadCalib.mData[2] << "\t"
-				<< firstInvQuat_RightUpperArm.mData[3] << "\t" << firstInvQuat_RightUpperArm.mData[0] << "\t" << firstInvQuat_RightUpperArm.mData[1] << "\t" << firstInvQuat_RightUpperArm.mData[2] << "\t"
-				<< firstInvQuat_RightLowerArm.mData[3] << "\t" << firstInvQuat_RightLowerArm.mData[0] << "\t" << firstInvQuat_RightLowerArm.mData[1] << "\t" << firstInvQuat_RightLowerArm.mData[2] << "\t"
-				<< firstInvQuat_LeftUpperArm.mData[3] << "\t" << firstInvQuat_LeftUpperArm.mData[0] << "\t" << firstInvQuat_LeftUpperArm.mData[1] << "\t" << firstInvQuat_LeftUpperArm.mData[2] << "\t"
-				<< firstInvQuat_LeftLowerArm.mData[3] << "\t" << firstInvQuat_LeftLowerArm.mData[0] << "\t" << firstInvQuat_LeftLowerArm.mData[1] << "\t" << firstInvQuat_LeftLowerArm.mData[2] << "\t"
-				<< firstInvQuat_RightUpperLeg.mData[3] << "\t" << firstInvQuat_RightUpperLeg.mData[0] << "\t" << firstInvQuat_RightUpperLeg.mData[1] << "\t" << firstInvQuat_RightUpperLeg.mData[2] << "\t"
-				<< firstInvQuat_RightLowerLeg.mData[3] << "\t" << firstInvQuat_RightLowerLeg.mData[0] << "\t" << firstInvQuat_RightLowerLeg.mData[1] << "\t" << firstInvQuat_RightLowerLeg.mData[2] << "\t"
-				<< firstInvQuat_LeftUpperLeg.mData[3] << "\t" << firstInvQuat_LeftUpperLeg.mData[0] << "\t" << firstInvQuat_LeftUpperLeg.mData[1] << "\t" << firstInvQuat_LeftUpperLeg.mData[2] << "\t"
-				<< firstInvQuat_LeftLowerLeg.mData[3] << "\t" << firstInvQuat_LeftLowerLeg.mData[0] << "\t" << firstInvQuat_LeftLowerLeg.mData[1] << "\t" << firstInvQuat_LeftLowerLeg.mData[2] << "\n";
+				<< QuatData_Pelvis.mData[3] << "\t" << QuatData_Pelvis.mData[0] << "\t" << QuatData_Pelvis.mData[1] << "\t" << QuatData_Pelvis.mData[2] << "\t"
+				<< QuatData_head.mData[3] << "\t" << QuatData_head.mData[0] << "\t" << QuatData_head.mData[1] << "\t" << QuatData_head.mData[2] << "\t"
+				<< QuatData_RightUpperArm.mData[3] << "\t" << QuatData_RightUpperArm.mData[0] << "\t" << QuatData_RightUpperArm.mData[1] << "\t" << QuatData_RightUpperArm.mData[2] << "\t"
+				<< QuatData_RightLowerArm.mData[3] << "\t" << QuatData_RightLowerArm.mData[0] << "\t" << QuatData_RightLowerArm.mData[1] << "\t" << QuatData_RightLowerArm.mData[2] << "\t"
+				<< QuatData_LeftUpperArm.mData[3] << "\t"  << QuatData_LeftUpperArm.mData[0] << "\t"  << QuatData_LeftUpperArm.mData[1] << "\t"  << QuatData_LeftUpperArm.mData[2] << "\t"
+				<< QuatData_LeftLowerArm.mData[3] << "\t"  << QuatData_LeftLowerArm.mData[0] << "\t"  << QuatData_LeftLowerArm.mData[1] << "\t"  << QuatData_LeftLowerArm.mData[2] << "\t"
+				<< QuatData_RightUpperLeg.mData[3] << "\t" << QuatData_RightUpperLeg.mData[0] << "\t" << QuatData_RightUpperLeg.mData[1] << "\t" << QuatData_RightUpperLeg.mData[2] << "\t"
+				<< QuatData_RightLowerLeg.mData[3] << "\t" << QuatData_RightLowerLeg.mData[0] << "\t" << QuatData_RightLowerLeg.mData[1] << "\t" << QuatData_RightLowerLeg.mData[2] << "\t"
+				<< QuatData_LeftUpperLeg.mData[3] << "\t"  << QuatData_LeftUpperLeg.mData[0] << "\t"  << QuatData_LeftUpperLeg.mData[1] << "\t"  << QuatData_LeftUpperLeg.mData[2] << "\t"
+				<< QuatData_LeftLowerLeg.mData[3] << "\t"  << QuatData_LeftLowerLeg.mData[0] << "\t"  << QuatData_LeftLowerLeg.mData[1] << "\t"  << QuatData_LeftLowerLeg.mData[2] << "\n";
 		
-		//--------------------------------------------------------------
+			//avatarDataFile.close();
+		//---------------------------------
 		iaAcquireGesture::calibIMU = false;
 	}	
 }
 
-// Get the gesture value
+// Raw quaternion data를 기반으로 calibration 및 변환을 수행
 Avatar iaAcquireGesture::getSFQ()
 {
 	Avatar myAvatar;
@@ -183,11 +185,10 @@ Avatar iaAcquireGesture::getSFQ()
 	myAvatar.b7.normalize();
 	myAvatar.b8.normalize();
 	myAvatar.b9.normalize();
-
+	//cout << "IMUSFQ" << endl;
 	return myAvatar;
 }
 
-//Get first inverted quaternion data
 Avatar iaAcquireGesture::getFirstInvQuat()
 {
 	Avatar myAvatar;
@@ -213,20 +214,18 @@ Avatar iaAcquireGesture::getFirstInvQuat()
 	myAvatar.b7.normalize();
 	myAvatar.b8.normalize();
 	myAvatar.b9.normalize();
-
+	//cout << "IMUFirstInv" << endl;
 	return myAvatar;
 }
 
-//Compute actual height of tracking person
 void iaAcquireGesture::calculateHeight(double &RuLeg, double &RlLeg, double &LuLeg, double &LlLeg)
 {
 	RuLeg = quatHeight(QuatData_RightUpperLeg.mutiplication(firstInvQuat_RightUpperLeg));
 	RlLeg = quatHeight(QuatData_RightLowerLeg.mutiplication(firstInvQuat_RightLowerLeg));
 	LuLeg = quatHeight(QuatData_LeftUpperLeg.mutiplication(firstInvQuat_LeftUpperLeg));
-	LlLeg = quatHeight(QuatData_LeftLowerLeg.mutiplication(firstInvQuat_LeftLowerLeg));	
+	LlLeg = quatHeight(QuatData_LeftLowerLeg.mutiplication(firstInvQuat_LeftLowerLeg));
 }
 
-//Acquire realtime IMU sensor data
 void iaAcquireGesture::getXsensData()
 {
 	connectXS.waitForConnections = false;
@@ -235,10 +234,8 @@ void iaAcquireGesture::getXsensData()
 	connectXS.xsIMU = { qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit,qInit };
 }
 
-//Connect to IMU sensor and start getting quetrnion data
 void iaAcquireGesture::startXsensData()
 {
-
 	bool stop_restart = connectXS.stop_and_restart_everything;
 
 	while (!stop_restart) {
@@ -250,10 +247,8 @@ void iaAcquireGesture::startXsensData()
 	}
 }
 
-//Reset IMU sensor intial state 
 void iaAcquireGesture::resetIMUSensor()
 {
-	
 		for (int i = 0; i < (int)connectXS.mtwDevices.size(); ++i)
 		{
 			std::cout << "\n reset:" << connectXS.mtwDevices[i]->resetOrientation(XRM_Alignment) << std::endl;
@@ -271,12 +266,12 @@ void iaAcquireGesture::saveRawQuatData(int noOfFrames)
 	ofstream avatarDataFile;
 
 	char fileName[1024];
-	
+
 		sprintf_s(fileName, ".\\SkeletonData\\RawIMUData-00%d-%d%d%d.txt", 0, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
 		avatarDataFile.open(fileName);
-	
+
 		avatarDataFile << "FULLBODY\t" << 1 << "\n" << "Frames:" << "\t" << noOfFrames << "\n";
-	
+
 	for (int tCount = 0; tCount < noOfFrames; tCount++)
 	{
 		avatarDataFile 
@@ -291,11 +286,9 @@ void iaAcquireGesture::saveRawQuatData(int noOfFrames)
 			<< sUtility.avatarData[tCount].b8.mData[3] << "\t" << sUtility.avatarData[tCount].b8.mData[0] << "\t" << sUtility.avatarData[tCount].b8.mData[1] << "\t" << sUtility.avatarData[tCount].b8.mData[2] << "\t"
 			<< sUtility.avatarData[tCount].b9.mData[3] << "\t" << sUtility.avatarData[tCount].b9.mData[0] << "\t" << sUtility.avatarData[tCount].b9.mData[1] << "\t" << sUtility.avatarData[tCount].b9.mData[2] << "\n";
 	}
-
 	avatarDataFile.close();
 }
 
-//Read IMU sensor data from offline stored file
 void iaAcquireGesture::readFileQuatData(char *fileName)
 {
 	sUtility.readAvatarData(fileName);
@@ -360,7 +353,6 @@ Avatar iaAcquireGesture::getFRQuatdata(int fNum)
 	return myAvatar;
 }
 
-//Continously save IMU data (Quaternion) to a file
 void iaAcquireGesture::saveRawQDataInRealTime(int frameIndex, bool CloseFile)
 {
 	
@@ -374,9 +366,9 @@ void iaAcquireGesture::saveRawQDataInRealTime(int frameIndex, bool CloseFile)
 
 		sprintf_s(fileName, ".\\SkeletonData\\RawnewIMUData-00%d-%d%d%d.txt", 0, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
 		rawIMUDataFile.open(fileName);
+
 		rawIMUDataFile << "FULLBODY\t" << 1 << "\n" << "Frames:" << "\t" << 0 << "\n";
 	}
-
 
 	if (frameIndex > 0 && !CloseFile)
 	{
@@ -395,5 +387,3 @@ void iaAcquireGesture::saveRawQDataInRealTime(int frameIndex, bool CloseFile)
 	if(CloseFile && rawIMUDataFile.is_open())
 	rawIMUDataFile.close();
 }
-
-
