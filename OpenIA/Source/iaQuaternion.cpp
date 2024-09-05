@@ -1,11 +1,4 @@
 /*
-
-*This work is dual-licensed under BSD-3 and Apache License 2.0. 
-
-*You can choose between one of them if you use this work.
-
-* SPDX-License-Identifier: BSD-3-Clause OR Apache License 2.0
-
 *	BSD 3-Clause License
 *
 *	Copyright (c) 2018, OpenAI, VELab, GSAIM, Chung-Ang University.
@@ -93,30 +86,13 @@ double quaternion::norm() {
 //	return q;
 //}
 
-//slerping between two quaternions
-quaternion quaternion::SLERP(quaternion& a, quaternion& b, const float t)
-{
-	quaternion r;
-	float t_ = 1 - t;
-	float Wa, Wb;
-	float theta = acos(a.mData[0]*b.mData[0] + a.mData[1] *b.mData[1] + a.mData[2] *b.mData[2] + a.mData[3] *b.mData[3]);
-	float sn = sin(theta);
-	Wa = sin(t_*theta) / sn;
-	Wb = sin(t*theta) / sn;
-	r.mData[0] = Wa * a.mData[0] + Wb * b.mData[0];
-	r.mData[1] = Wa * a.mData[1] + Wb * b.mData[1];
-	r.mData[2] = Wa * a.mData[2] + Wb * b.mData[2];
-	r.mData[3] = Wa * a.mData[3] + Wb * b.mData[3];
-	r.normalize();
-	return r;
-}
-
 void quaternion::normalize() {
 		
 	this->mData[0] = this->mData[0] / norm();
 	this->mData[1] = this->mData[1] / norm();
 	this->mData[2] = this->mData[2] / norm();
-	this->mData[3] = this->mData[3] / norm();	
+	this->mData[3] = this->mData[3] / norm();
+	
 }
 
 double  quaternion::real() const{
@@ -190,32 +166,50 @@ quaternion quaternion::mutiplication(quaternion Q) {
 	double z1 = mData[2], z2 = Q.mData[2];
 
 	//Hari
-	mul.mData[3] = mData[3] * Q.mData[3] - mData[0] * Q.mData[0] - mData[1] * Q.mData[1] - mData[2] * Q.mData[2];
-	mul.mData[0] = mData[3] * Q.mData[0] + mData[0] * Q.mData[3] + mData[1] * Q.mData[2] - mData[2] * Q.mData[1];
-	mul.mData[1] = mData[3] * Q.mData[1] + mData[1] * Q.mData[3] + mData[2] * Q.mData[0] - mData[0] * Q.mData[2];
-	mul.mData[2] = mData[3] * Q.mData[2] + mData[2] * Q.mData[3] + mData[0] * Q.mData[1] - mData[1] * Q.mData[0];
-	//std::cout << "HariOM : W" << mul.mData[3] << "X:" << mul.mData[0] << "Y:" << mul.mData[1] << "Z:" << mul.mData[2] << std::endl;
-	
-	//Stackoverflow
-	/*mul.mData[3] = w1*w2 - x1*x2 - y1*y2 - z1*z2;
-	mul.mData[0] = w1*x2 + w2*x1 - y1*z2 + y2*z1;
-	mul.mData[1] = w1*y2 + w2*y1 + x1*z2 - x2*z1;
-	mul.mData[2] = w1*z2 + w2*z1 - x1*y2 + x2*y1;*/
+	mul.mData[3] = mData[3] * Q.mData[3] - mData[0] * Q.mData[0] - mData[1] * Q.mData[1] - mData[2] * Q.mData[2]; // w
+	mul.mData[0] = mData[3] * Q.mData[0] + mData[0] * Q.mData[3] + mData[1] * Q.mData[2] - mData[2] * Q.mData[1]; // x
+	mul.mData[1] = mData[3] * Q.mData[1] + mData[1] * Q.mData[3] + mData[2] * Q.mData[0] - mData[0] * Q.mData[2]; // y
+	mul.mData[2] = mData[3] * Q.mData[2] + mData[2] * Q.mData[3] + mData[0] * Q.mData[1] - mData[1] * Q.mData[0]; // z
 
-	//Quaternion web
-	/*mul.mData[3] = w1*w2 - x1*x2 - y1*y2 - z1*z2;
-	mul.mData[0] = w1*x2 + x1*w2 - y1*z2 + z1*y2;
-	mul.mData[1] = w1*y2 + x1*z2 + y1*w2 - z1*x2;
-	mul.mData[2] = w1*z2 - x1*y2 + y1*x2 + z1*w2;*/
-
-	//Wiki
-	/*mul.mData[3] = w1*w2 - x1*x2 - y1*y2 - z1*z2;
-	mul.mData[0] = w1*x2 + x1*w2 + y1*z2 - z1*y2;
-	mul.mData[1] = w1*y2 - x1*z2 + y1*w2 + z1*x2;
-	mul.mData[2] = w1*z2 + x1*y2 - y1*x2 + z1*w2;*/
-	//std::cout << "Update : W" << mul.mData[3] << "X:" << mul.mData[0] << "Y:" << mul.mData[1] << "Z:" << mul.mData[2] << std::endl;
 	return mul;
 }
+
+quaternion quaternion::addition(quaternion Q) {
+
+	//cout << Q << endl;
+
+	quaternion add;
+	double w1 = mData[3], w2 = Q.mData[3];
+	double x1 = mData[0], x2 = Q.mData[0];
+	double y1 = mData[1], y2 = Q.mData[1];
+	double z1 = mData[2], z2 = Q.mData[2];
+
+	add.mData[3] = Q.mData[3] + mData[3]; // w
+	add.mData[0] = Q.mData[0] + mData[0]; // x
+	add.mData[1] = Q.mData[1] + mData[1]; // y
+	add.mData[2] = Q.mData[2] + mData[2]; // z
+
+	return add;
+}
+
+quaternion quaternion::subtraction(quaternion Q) {
+
+	//cout << Q << endl;
+
+	quaternion subtract;
+	double w1 = mData[3], w2 = Q.mData[3];
+	double x1 = mData[0], x2 = Q.mData[0];
+	double y1 = mData[1], y2 = Q.mData[1];
+	double z1 = mData[2], z2 = Q.mData[2];
+
+	subtract.mData[3] = Q.mData[3] - mData[3]; // w
+	subtract.mData[0] = Q.mData[0] - mData[0]; // x
+	subtract.mData[1] = Q.mData[1] - mData[1]; // y
+	subtract.mData[2] = Q.mData[2] - mData[2]; // z
+
+	return subtract;
+}
+
 
 TVec3 quaternion::quternionMatrices(quaternion Q, TVec3 vecPoint)
 {

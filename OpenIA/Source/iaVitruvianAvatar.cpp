@@ -1,25 +1,9 @@
-
-/*
-*This work is dual-licensed under BSD-3 and Apache License 2.0. 
-
-*You can choose between one of them if you use this work.
-
-*SPDX-License-Identifier: BSD-3-Clause OR Apache License 2.0
-
-*/
-
 #include "iaVitruvianAvatar.h"
 #include <vtkParametricSuperEllipsoid.h>
 #include <vtkParametricFunctionSource.h>
-#include <vtkGenericOpenGLRenderWindow.h>
 
 Avatar VitruvianAvatar::vitruvianAvatarUpdate;
 bool VitruvianAvatar::isLoaded = false;
-void KeypressCallbackFunction(
-	vtkObject* caller,
-	long unsigned int eventId,
-	void* clientData,
-	void* callData);
 typedef struct vetruvianVtkAvatarSegment
 {
 	vtkSmartPointer<vtkParametricSuperEllipsoid> parametricObject = vtkSmartPointer<vtkParametricSuperEllipsoid>::New();
@@ -30,10 +14,6 @@ typedef struct vetruvianVtkAvatarSegment
 	vtkSmartPointer<vtkSphereSource> sphereSource = vtkSmartPointer<vtkSphereSource>::New();
 	vtkSmartPointer<vtkPolyDataMapper> sphereMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	vtkSmartPointer<vtkActor> sphereActor = vtkSmartPointer<vtkActor>::New();
-
-	vtkSmartPointer<vtkSphereSource> jointSource = vtkSmartPointer<vtkSphereSource>::New();
-	vtkSmartPointer<vtkPolyDataMapper> jointMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	vtkSmartPointer<vtkActor> jointActor = vtkSmartPointer<vtkActor>::New();
 	double jointPoint[3];
 	float length;
 } JointSegment;
@@ -47,8 +27,6 @@ typedef struct vetruvianTorso
 	vtkSmartPointer<vtkSphereSource> sphereSource = vtkSmartPointer<vtkSphereSource>::New();
 	vtkSmartPointer<vtkPolyDataMapper> sphereMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	vtkSmartPointer<vtkActor> sphereActor = vtkSmartPointer<vtkActor>::New();
-
-	
 	double jointPoint[3];
 	float length;
 } Torso;
@@ -75,11 +53,10 @@ vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPoin
 vtkSmartPointer<vtkNamedColors> colors = vtkSmartPointer<vtkNamedColors>::New();
 
 SphereUtility vitruvianSphereUtility;
-int MotionSphere::sphereID;
-char* lllc, *lulc, *rllc, *rulc, *pc, *cc, *ruhc, *rlhc, *luhc, *llhc;
+
 bool isEqual = false;
 
-void drawSphere(JointSegment &jointSegment, float radius)
+void drawSphere(JointSegment& jointSegment, float radius)
 {
 	// Create spheres for start and end point
 
@@ -97,24 +74,10 @@ void drawSphere(JointSegment &jointSegment, float radius)
 	renderer->AddActor(jointSegment.sphereActor);
 }
 
-void drawJointSphere(JointSegment &jointSegment, float radius)
+void drawCube(JointSegment& handJoint, Hand& hand, float size, char* fileName)
 {
-	jointSegment.jointSource->SetCenter(jointSegment.jointPoint);
-	jointSegment.jointSource->SetRadius(radius);
-	jointSegment.jointSource->SetPhiResolution(50);
-	jointSegment.jointSource->SetThetaResolution(50);
-	jointSegment.jointMapper->SetInputConnection(jointSegment.jointSource->GetOutputPort());
 
-	jointSegment.jointActor->SetMapper(jointSegment.jointMapper);
-	jointSegment.jointActor->GetProperty()->SetColor(colors->GetColor3d("White").GetData());
-	jointSegment.jointActor->GetProperty()->SetOpacity(0.5);
-	//jointSegment.jointActor->GetProperty()->SetSpecularPower(20);
 
-	renderer->AddActor(jointSegment.jointActor);
-}
-
-void drawCube(JointSegment& handJoint, Hand& hand, float size)
-{
 	/*hand.handSource->SetCenter(handJoint.jointPoint);
 	hand.handSource->SetXLength(size - 2);
 	hand.handSource->SetYLength(size + 1);
@@ -143,10 +106,10 @@ void drawCube(JointSegment& handJoint, Hand& hand, float size)
 		vtkSmartPointer<vtkTransform>::New();
 	//transform->PostMultiply(); //this is the key line
 	transform->Translate(handJoint.jointPoint);
-	transform->Scale(size,size,size);
+	transform->Scale(size, size, size);
 	/*transform->RotateX(90);
 	transform->RotateY(-90);*/
-	transform->RotateWXYZ(hand.rotation.axisangle[0], 
+	transform->RotateWXYZ(hand.rotation.axisangle[0],
 		hand.rotation.axisangle[1],
 		hand.rotation.axisangle[2],
 		hand.rotation.axisangle[3]);
@@ -163,9 +126,9 @@ vtkSmartPointer<vtkPolyDataMapper> headMapper = vtkSmartPointer<vtkPolyDataMappe
 vtkSmartPointer<vtkActor> headActor = vtkSmartPointer<vtkActor>::New();
 quaternion headQuat;
 
-void drawHead(JointSegment &neck)
+void drawHead(JointSegment& neck)
 {
-	
+
 
 	/*hand.handSource->SetCenter(handJoint.jointPoint);
 	hand.handSource->SetXLength(size - 2);
@@ -191,7 +154,14 @@ void drawHead(JointSegment &neck)
 		axis[1] = headQuat.mData[1] / sin(angle / 2);
 		axis[2] = headQuat.mData[2] / sin(angle / 2);
 	}*/
-	
+	//create a texture map for torso
+	vtkSmartPointer<vtkTexture> texture =
+		vtkSmartPointer<vtkTexture>::New();
+	vtkSmartPointer<vtkJPEGReader> reader =
+		vtkSmartPointer<vtkJPEGReader>::New();
+	reader->SetFileName(".\\data\\avtar\\headmap.jpg");
+	// Apply the texture
+	texture->SetInputConnection(reader->GetOutputPort());
 
 	vtkSmartPointer<vtkTransform> transform =
 		vtkSmartPointer<vtkTransform>::New();
@@ -200,17 +170,17 @@ void drawHead(JointSegment &neck)
 	transform->Scale(12.5, 12.5, 12.5);
 	/*transform->RotateX(90);
 	transform->RotateY(-90);*/
-	transform->RotateWXYZ(headQuat.axisangle[0],headQuat.axisangle[1], headQuat.axisangle[2], headQuat.axisangle[3]);
+	transform->RotateWXYZ(headQuat.axisangle[0], headQuat.axisangle[1], headQuat.axisangle[2], headQuat.axisangle[3]);
 	//headActor->RotateWXYZ(angle * 180 / PI, axis[0], axis[1], axis[2]);
 	headActor->SetMapper(headMapper);
 	headActor->SetUserTransform(transform);
-	
+	headActor->SetTexture(texture);
 	headActor->GetProperty()->SetSpecular(.5);
 	headActor->GetProperty()->SetSpecularPower(10);
 	renderer->AddActor(headActor);
 }
 
-void drawBoneSegment(JointSegment &startSegment, JointSegment &endSegment, float* scaling, bool isHead, char* color)
+void drawBoneSegment(JointSegment& startSegment, JointSegment& endSegment, float* scaling, bool isHead, char* color)
 {
 	//set parametric ellipsoid to source
 	startSegment.cylinderSource->SetParametricFunction(startSegment.parametricObject);
@@ -231,11 +201,11 @@ void drawBoneSegment(JointSegment &startSegment, JointSegment &endSegment, float
 	startSegment.parametricObject->SetYRadius(scaling[1]);
 	startSegment.parametricObject->SetZRadius(scaling[2]);
 
-	////create a texture map for torso
-	//vtkSmartPointer<vtkTexture> texture =
-	//	vtkSmartPointer<vtkTexture>::New();
-	//vtkSmartPointer<vtkJPEGReader> reader =
-	//	vtkSmartPointer<vtkJPEGReader>::New();
+	//create a texture map for torso
+	vtkSmartPointer<vtkTexture> texture =
+		vtkSmartPointer<vtkTexture>::New();
+	vtkSmartPointer<vtkJPEGReader> reader =
+		vtkSmartPointer<vtkJPEGReader>::New();
 
 	vtkSmartPointer<vtkTransform> transform =
 		vtkSmartPointer<vtkTransform>::New();
@@ -245,12 +215,12 @@ void drawBoneSegment(JointSegment &startSegment, JointSegment &endSegment, float
 		startSegment.parametricObject->SetXRadius(scaling[0]);
 		startSegment.parametricObject->SetYRadius(scaling[1]);
 		startSegment.parametricObject->SetZRadius(scaling[2]);
-		
+
 		// Read the image which will be the texture
-		//reader->SetFileName("velab.jpg");
-		//// Apply the texture
-		//texture->SetInputConnection(reader->GetOutputPort());
-		//VitruvianAvatar::vitruvianAvatarUpdate.b1.quattoaxisangle();
+		reader->SetFileName("velab.jpg");
+		// Apply the texture
+		texture->SetInputConnection(reader->GetOutputPort());
+		VitruvianAvatar::vitruvianAvatarUpdate.b1.quattoaxisangle();
 		/*transform->RotateWXYZ(VitruvianAvatar::vitruvianAvatarUpdate.b1.axisangle[0],
 			VitruvianAvatar::vitruvianAvatarUpdate.b1.axisangle[1],
 			VitruvianAvatar::vitruvianAvatarUpdate.b1.axisangle[2],
@@ -293,9 +263,9 @@ void drawBoneSegment(JointSegment &startSegment, JointSegment &endSegment, float
 		matrix->SetElement(i, 2, normalizedZ[i]);
 	}
 
-	
+
 	// Apply the transforms
-	
+
 	transform->Translate(startSegment.jointPoint);   // translate to starting point
 	transform->Concatenate(matrix);     // apply direction cosines
 	transform->RotateZ(-90.0);          // align cylinder to x axis
@@ -328,17 +298,16 @@ void drawBoneSegment(JointSegment &startSegment, JointSegment &endSegment, float
 		//
 	}
 	else
-	startSegment.cylinderActor->GetProperty()->SetColor(colors->GetColor3d(color).GetData());
+		startSegment.cylinderActor->GetProperty()->SetColor(colors->GetColor3d(color).GetData());
 	startSegment.cylinderActor->GetProperty()->SetSpecular(.5);
 	startSegment.cylinderActor->GetProperty()->SetSpecularPower(20);
 	//draw start and end points as a sphere
-	drawSphere(startSegment, 3);
-	drawSphere(endSegment, 3);
-	//if (!isHead)
+	if (!isHead)
 	{
-		//drawJointSphere(startSegment, 8);
+		drawSphere(startSegment, 3);
+		drawSphere(endSegment, 3);
 	}
-	
+
 
 	//Add the actor to the scene
 
@@ -362,7 +331,7 @@ void updatejoints()
 	rightKneeUpperLeg.jointPoint[2] = rightFootLowerLeg.jointPoint[2];
 
 	rightHipSegment.jointPoint[0] = rightKneeUpperLeg.jointPoint[0];
-	rightHipSegment.jointPoint[1] = rightKneeUpperLeg.jointPoint[1] + 1.5*headUnit;
+	rightHipSegment.jointPoint[1] = rightKneeUpperLeg.jointPoint[1] + 1.5 * headUnit;
 	rightHipSegment.jointPoint[2] = rightKneeUpperLeg.jointPoint[2];
 
 	leftKneeUpperLeg.jointPoint[0] = leftFootLowerLeg.jointPoint[0];
@@ -370,7 +339,7 @@ void updatejoints()
 	leftKneeUpperLeg.jointPoint[2] = leftFootLowerLeg.jointPoint[2];
 
 	leftHipSegment.jointPoint[0] = leftKneeUpperLeg.jointPoint[0];
-	leftHipSegment.jointPoint[1] = leftKneeUpperLeg.jointPoint[1] + 1.5*headUnit;
+	leftHipSegment.jointPoint[1] = leftKneeUpperLeg.jointPoint[1] + 1.5 * headUnit;
 	leftHipSegment.jointPoint[2] = leftKneeUpperLeg.jointPoint[2];
 
 	pelvisStomach.jointPoint[0] = (leftHipSegment.jointPoint[0] + rightHipSegment.jointPoint[0]) / 2;
@@ -386,35 +355,35 @@ void updatejoints()
 	neckToChin.jointPoint[2] = sternumChest.jointPoint[2];
 
 	chinToHead.jointPoint[0] = neckToChin.jointPoint[0];
-	chinToHead.jointPoint[1] = neckToChin.jointPoint[1] + (headUnit*0.4);
+	chinToHead.jointPoint[1] = neckToChin.jointPoint[1] + (headUnit * 0.4);
 	chinToHead.jointPoint[2] = neckToChin.jointPoint[2];
 
 	head.jointPoint[0] = chinToHead.jointPoint[0];
-	head.jointPoint[1] = chinToHead.jointPoint[1] + (headUnit*0.6);
+	head.jointPoint[1] = chinToHead.jointPoint[1] + (headUnit * 0.6);
 	head.jointPoint[2] = chinToHead.jointPoint[2];
 
-	rightShoulderSegment.jointPoint[0] = neckToChin.jointPoint[0] - 0.8*headUnit;
+	rightShoulderSegment.jointPoint[0] = neckToChin.jointPoint[0] - 0.8 * headUnit;
 	rightShoulderSegment.jointPoint[1] = neckToChin.jointPoint[1];
 	rightShoulderSegment.jointPoint[2] = neckToChin.jointPoint[2];
 
 	rightElbowUpperArm.jointPoint[0] = rightShoulderSegment.jointPoint[0];
-	rightElbowUpperArm.jointPoint[1] = rightShoulderSegment.jointPoint[1] - (1.2*headUnit);
+	rightElbowUpperArm.jointPoint[1] = rightShoulderSegment.jointPoint[1] - (1.2 * headUnit);
 	rightElbowUpperArm.jointPoint[2] = rightShoulderSegment.jointPoint[2];
 
 	rightHandLowerArm.jointPoint[0] = rightElbowUpperArm.jointPoint[0];
-	rightHandLowerArm.jointPoint[1] = rightElbowUpperArm.jointPoint[1] - (1.2*headUnit);
+	rightHandLowerArm.jointPoint[1] = rightElbowUpperArm.jointPoint[1] - (1.2 * headUnit);
 	rightHandLowerArm.jointPoint[2] = rightElbowUpperArm.jointPoint[2];
 
-	leftShoulderSegment.jointPoint[0] = neckToChin.jointPoint[0] + 0.8*headUnit;
+	leftShoulderSegment.jointPoint[0] = neckToChin.jointPoint[0] + 0.8 * headUnit;
 	leftShoulderSegment.jointPoint[1] = neckToChin.jointPoint[1];
 	leftShoulderSegment.jointPoint[2] = neckToChin.jointPoint[2];
 
 	leftElbowUpperArm.jointPoint[0] = leftShoulderSegment.jointPoint[0];
-	leftElbowUpperArm.jointPoint[1] = leftShoulderSegment.jointPoint[1] - (1.2*headUnit);
+	leftElbowUpperArm.jointPoint[1] = leftShoulderSegment.jointPoint[1] - (1.2 * headUnit);
 	leftElbowUpperArm.jointPoint[2] = leftShoulderSegment.jointPoint[2];
 
 	leftHandLowerArm.jointPoint[0] = leftElbowUpperArm.jointPoint[0];
-	leftHandLowerArm.jointPoint[1] = leftElbowUpperArm.jointPoint[1] - (1.2*headUnit);
+	leftHandLowerArm.jointPoint[1] = leftElbowUpperArm.jointPoint[1] - (1.2 * headUnit);
 	leftHandLowerArm.jointPoint[2] = leftElbowUpperArm.jointPoint[2];
 }
 
@@ -424,7 +393,6 @@ void drawFloor()
 	vtkSmartPointer<vtkPlaneSource> planeSource =
 		vtkSmartPointer<vtkPlaneSource>::New();
 	planeSource->SetCenter(0.0, -0.0015, 0.0);
-	//planeSource->SetCenter(0.0, 0.005, 0.0);
 	planeSource->SetNormal(0.0, 1.0, 0.0);
 	//planeSource->set
 	planeSource->Update();
@@ -439,7 +407,7 @@ void drawFloor()
 	vtkSmartPointer<vtkTexture> planeTexture = vtkSmartPointer<vtkTexture>::New();
 	vtkSmartPointer<vtkJPEGReader> reader = vtkSmartPointer<vtkJPEGReader>::New();
 	// Read the image which will be the texture
-	reader->SetFileName("..\\src\\data\\avtar\\floor.jpg");
+	reader->SetFileName(".\\data\\avtar\\floor.jpg");
 	// Apply the texture
 	planeTexture->SetInputConnection(reader->GetOutputPort());
 	planeTexture->SetRepeat(true);
@@ -458,23 +426,23 @@ void drawAvatar()
 	float scaling[3];
 
 	scaling[0] = 2.5; scaling[1] = 0.5; scaling[2] = 2.5;
-	drawBoneSegment(rightFootLowerLeg, rightKneeUpperLeg,scaling, true,rllc); // right lower leg
+	drawBoneSegment(rightFootLowerLeg, rightKneeUpperLeg, scaling, false, "DimGray"); // right lower leg
 	scaling[0] = 3.5; scaling[1] = 0.5; scaling[2] = 3.5;
-	drawBoneSegment(rightKneeUpperLeg, rightHipSegment, scaling, false, rulc); // right upper leg
+	drawBoneSegment(rightKneeUpperLeg, rightHipSegment, scaling, false, "DimGray"); // right upper leg
 
 	scaling[0] = 2.5; scaling[1] = 0.5; scaling[2] = 2.5;
-	drawBoneSegment(leftFootLowerLeg, leftKneeUpperLeg,scaling, true, lllc); // left lower leg
+	drawBoneSegment(leftFootLowerLeg, leftKneeUpperLeg, scaling, false, "DimGray"); // left lower leg
 	scaling[0] = 3.5; scaling[1] = 0.5; scaling[2] = 3.5;
-	drawBoneSegment(leftKneeUpperLeg, leftHipSegment,scaling, false, lulc); // left upper leg
+	drawBoneSegment(leftKneeUpperLeg, leftHipSegment, scaling, false, "DimGray"); // left upper leg
 
 	scaling[0] = 4.5; scaling[1] = 0.5; scaling[2] = 4.5;
 	drawBoneSegment(rightHipSegment, pelvisStomach, scaling, false, "DarkGray"); // right hips
 	drawBoneSegment(leftHipSegment, pelvisStomach, scaling, false, "DarkGray"); // left hips
 
 	scaling[0] = 5.0; scaling[1] = 0.5; scaling[2] = 5.0;
-	drawBoneSegment(pelvisStomach, sternumChest,scaling, false, pc); // stomach
+	drawBoneSegment(pelvisStomach, sternumChest, scaling, false, "DarkGray"); // stomach
 	scaling[0] = 10.0; scaling[1] = 0.5; scaling[2] = 7.5;
-	drawBoneSegment(sternumChest, neckToChin,scaling, false, cc); // chest
+	drawBoneSegment(sternumChest, neckToChin, scaling, false, "DarkGray"); // chest
 	//scaling[0] = 1.75; scaling[1] = 0.5; scaling[2] = 1.75;
 	//drawBoneSegment(neckToChin, chinToHead,scaling,true, "DarkGray"); // neck
 	//scaling[0] = 5.0; scaling[1] = 0.8; scaling[2] = 3.5;
@@ -483,18 +451,18 @@ void drawAvatar()
 	drawHead(neckToChin);
 
 	scaling[0] = 3.5; scaling[1] = 0.5; scaling[2] = 3.5;
-	drawBoneSegment(rightShoulderSegment, neckToChin,scaling, false, "DimGray"); // right shoulder
-	drawBoneSegment(rightElbowUpperArm, rightShoulderSegment,scaling, false, ruhc); // right upper arm
+	drawBoneSegment(rightShoulderSegment, neckToChin, scaling, false, "DimGray"); // right shoulder
+	drawBoneSegment(rightElbowUpperArm, rightShoulderSegment, scaling, false, "DimGray"); // right upper arm
 	scaling[0] = 2.5; scaling[1] = 0.5; scaling[2] = 2.5;
-	drawBoneSegment(rightHandLowerArm, rightElbowUpperArm,scaling, true, rlhc); // right lower arm
-	drawCube(rightHandLowerArm, rightHand, 15);
+	drawBoneSegment(rightHandLowerArm, rightElbowUpperArm, scaling, false, "DimGray"); // right lower arm
+	drawCube(rightHandLowerArm, rightHand, 15, "\\avtar\\RightHand.obj");
 
 	scaling[0] = 3.5; scaling[1] = 0.5; scaling[2] = 3.5;
-	drawBoneSegment(leftShoulderSegment, neckToChin,scaling, false, "DimGray"); // left shoulder
-	drawBoneSegment(leftElbowUpperArm, leftShoulderSegment,scaling, false, luhc); // left upper arm
+	drawBoneSegment(leftShoulderSegment, neckToChin, scaling, false, "DimGray"); // left shoulder
+	drawBoneSegment(leftElbowUpperArm, leftShoulderSegment, scaling, false, "DimGray"); // left upper arm
 	scaling[0] = 2.5; scaling[1] = 0.5; scaling[2] = 2.5;
-	drawBoneSegment(leftHandLowerArm, leftElbowUpperArm,scaling, true, llhc); // left lower arm
-	drawCube(leftHandLowerArm, leftHand, 15);
+	drawBoneSegment(leftHandLowerArm, leftElbowUpperArm, scaling, false, "DimGray"); // left lower arm
+	drawCube(leftHandLowerArm, leftHand, 15, "..\\data\\avtar\\LeftHand.obj");
 }
 
 void rotateAvatar(Avatar avatar)
@@ -502,7 +470,7 @@ void rotateAvatar(Avatar avatar)
 	//--------------------------------------- Translate lower body to ground point ---------------------------
 	double diffR = rightFootLowerLeg.jointPoint[1];
 	double diffL = leftFootLowerLeg.jointPoint[1];
-	
+
 	rightFootLowerLeg.jointPoint[0] = rightFootLowerLeg.jointPoint[0];
 	rightFootLowerLeg.jointPoint[1] = 0;
 	rightFootLowerLeg.jointPoint[2] = rightFootLowerLeg.jointPoint[2];
@@ -514,10 +482,9 @@ void rotateAvatar(Avatar avatar)
 	rightKneeUpperLeg.jointPoint[1] = rightKneeUpperLeg.jointPoint[1] - diffR;
 	rightHipSegment.jointPoint[1] = rightHipSegment.jointPoint[1] - diffR;
 
-	leftKneeUpperLeg.jointPoint[1]	= leftKneeUpperLeg.jointPoint[1] - diffL;
-	leftHipSegment.jointPoint[1]	= leftHipSegment.jointPoint[1] - diffL;
-	
-	
+	leftKneeUpperLeg.jointPoint[1] = leftKneeUpperLeg.jointPoint[1] - diffL;
+	leftHipSegment.jointPoint[1] = leftHipSegment.jointPoint[1] - diffL;
+
 	//---------------------------------------- Bottom-Up Update -----------------------------------------------
 	//Finding right knee joint from the fixed right foot.
 	quaternion q = avatar.b7;// .Inverse().mutiplication(avatar.b7);
@@ -559,8 +526,8 @@ void rotateAvatar(Avatar avatar)
 
 		pelvisStomach.jointPoint[0] = leftHipSegment.jointPoint[0] + vec.mData[0] * leftHipSegment.length;
 		pelvisStomach.jointPoint[1] = leftHipSegment.jointPoint[1] + vec.mData[2] * leftHipSegment.length;
-		pelvisStomach.jointPoint[2] = leftHipSegment.jointPoint[2] -vec.mData[1] *  leftHipSegment.length;
-		
+		pelvisStomach.jointPoint[2] = leftHipSegment.jointPoint[2] - vec.mData[1] * leftHipSegment.length;
+
 		/*float diffR = leftHipSegment.jointPoint[1] - rightHipSegment.jointPoint[1];
 		rightKneeUpperLeg.jointPoint[1] = rightKneeUpperLeg.jointPoint[1] + diffR;
 		rightFootLowerLeg.jointPoint[1] = rightFootLowerLeg.jointPoint[1] + diffR;
@@ -571,9 +538,10 @@ void rotateAvatar(Avatar avatar)
 		rightFootLowerLeg.jointPoint[2] = rightFootLowerLeg.jointPoint[2] + diffR;
 		rightHipSegment.jointPoint[2] = rightHipSegment.jointPoint[2] + diffR;*/
 
-	//	isEqual = false;
-		
-	}else 	if (rightHipSegment.jointPoint[1] >= leftHipSegment.jointPoint[1])
+		//	isEqual = false;
+
+	}
+	else 	if (rightHipSegment.jointPoint[1] >= leftHipSegment.jointPoint[1])
 	{
 		q = avatar.b0;// .Inverse().mutiplication(avatar.b8);
 		vec = q.mutiplication(quaternion{ 1,0,0,0 }.mutiplication(q.Inverse()));
@@ -581,8 +549,7 @@ void rotateAvatar(Avatar avatar)
 		pelvisStomach.jointPoint[0] = rightHipSegment.jointPoint[0] + vec.mData[0] * rightHipSegment.length;
 		pelvisStomach.jointPoint[1] = rightHipSegment.jointPoint[1] + vec.mData[2] * rightHipSegment.length;
 		pelvisStomach.jointPoint[2] = rightHipSegment.jointPoint[2] - vec.mData[1] * rightHipSegment.length;
-		//cout << pelvisStomach.jointPoint[0] << "," << pelvisStomach.jointPoint[1] << "," << pelvisStomach.jointPoint[2] << ",";
-		
+
 		/*float diffR = rightHipSegment.jointPoint[1] - leftHipSegment.jointPoint[1];
 		leftKneeUpperLeg.jointPoint[1]	= leftKneeUpperLeg.jointPoint[1] + diffR;
 		leftFootLowerLeg.jointPoint[1]	= leftFootLowerLeg.jointPoint[1] + diffR;
@@ -601,27 +568,25 @@ void rotateAvatar(Avatar avatar)
 		pelvisStomach.jointPoint[2] = (rightHipSegment.jointPoint[2] + leftHipSegment.jointPoint[2]) / 2;
 		isEqual = true;
 	}*/
-	cout << pelvisStomach.jointPoint[0] << "," << pelvisStomach.jointPoint[1] << "," << pelvisStomach.jointPoint[2]<<endl;
-//----------------------------------------Top-Down Update---------------------------------------------------------------------------------------
-		//Finding right pelvis joint from the pelvis.
-		q = avatar.b0;// .Inverse().mutiplication(avatar.b0);
-		vec = q.mutiplication(quaternion{ -1,0,0,0 }.mutiplication(q.Inverse()));
 
-		rightHipSegment.jointPoint[0] = pelvisStomach.jointPoint[0] + vec.mData[0] * rightHipSegment.length;
-		rightHipSegment.jointPoint[1] = pelvisStomach.jointPoint[1] + vec.mData[2] * rightHipSegment.length; //Changes in Lower body with pelvis rotation and model moves continously in z axis
-		rightHipSegment.jointPoint[2] = pelvisStomach.jointPoint[2] - vec.mData[1] * rightHipSegment.length;//Changes in Lower body with pelvis rotation and model moves continously in z axis
-		//cout << rightHipSegment.jointPoint[0] << "," << rightHipSegment.jointPoint[1] << "," << rightHipSegment.jointPoint[2] << ",";
+	//----------------------------------------Top-Down Update---------------------------------------------------------------------------------------
+			//Finding right pelvis joint from the pelvis.
+	q = avatar.b0;// .Inverse().mutiplication(avatar.b0);
+	vec = q.mutiplication(quaternion{ -1,0,0,0 }.mutiplication(q.Inverse()));
 
-		//Finding left pelvis joint from the pelvis.
-		q = avatar.b0;// .Inverse().mutiplication(avatar.b0);
-		vec = q.mutiplication(quaternion{ 1,0,0,0 }.mutiplication(q.Inverse()));
+	rightHipSegment.jointPoint[0] = pelvisStomach.jointPoint[0] + vec.mData[0] * rightHipSegment.length;
+	rightHipSegment.jointPoint[1] = pelvisStomach.jointPoint[1] + vec.mData[2] * rightHipSegment.length; //Changes in Lower body with pelvis rotation and model moves continously in z axis
+	rightHipSegment.jointPoint[2] = pelvisStomach.jointPoint[2] - vec.mData[1] * rightHipSegment.length;//Changes in Lower body with pelvis rotation and model moves continously in z axis
 
-		leftHipSegment.jointPoint[0] = pelvisStomach.jointPoint[0] + vec.mData[0] * leftHipSegment.length;
-		leftHipSegment.jointPoint[1] = pelvisStomach.jointPoint[1] + vec.mData[2] * leftHipSegment.length;  //Changes in Lower body with pelvis rotation and model moves continously in z axis
-		leftHipSegment.jointPoint[2] = pelvisStomach.jointPoint[2] - vec.mData[1] * leftHipSegment.length;	//Changes in Lower body with pelvis rotation and model moves continously in z axis
-		//cout << leftHipSegment.jointPoint[0] << "," << leftHipSegment.jointPoint[1] << "," << leftHipSegment.jointPoint[2] << ",";
+	//Finding left pelvis joint from the pelvis.
+	q = avatar.b0;// .Inverse().mutiplication(avatar.b0);
+	vec = q.mutiplication(quaternion{ 1,0,0,0 }.mutiplication(q.Inverse()));
 
-	//if (!isEqual) //Execute topdown approach only when left and right hips are unequal
+	leftHipSegment.jointPoint[0] = pelvisStomach.jointPoint[0] + vec.mData[0] * leftHipSegment.length;
+	leftHipSegment.jointPoint[1] = pelvisStomach.jointPoint[1] + vec.mData[2] * leftHipSegment.length;  //Changes in Lower body with pelvis rotation and model moves continously in z axis
+	leftHipSegment.jointPoint[2] = pelvisStomach.jointPoint[2] - vec.mData[1] * leftHipSegment.length;	//Changes in Lower body with pelvis rotation and model moves continously in z axis
+
+//if (!isEqual) //Execute topdown approach only when left and right hips are unequal
 	{
 		//Finding right knee from the right pelvis point
 		q = avatar.b6;// .Inverse().mutiplication(avatar.b6);
@@ -630,7 +595,6 @@ void rotateAvatar(Avatar avatar)
 		rightKneeUpperLeg.jointPoint[0] = (rightHipSegment.jointPoint[0] + vec.mData[0] * rightKneeUpperLeg.length);
 		rightKneeUpperLeg.jointPoint[1] = rightHipSegment.jointPoint[1] + vec.mData[2] * rightKneeUpperLeg.length;
 		rightKneeUpperLeg.jointPoint[2] = rightHipSegment.jointPoint[2] + -vec.mData[1] * rightKneeUpperLeg.length;
-		//cout << rightKneeUpperLeg.jointPoint[0] << "," << rightKneeUpperLeg.jointPoint[1] << "," << rightKneeUpperLeg.jointPoint[2] << ",";
 
 		//Finding left knee from the left pelvis point
 		q = avatar.b8;// .Inverse().mutiplication(avatar.b8);
@@ -639,7 +603,6 @@ void rotateAvatar(Avatar avatar)
 		leftKneeUpperLeg.jointPoint[0] = leftHipSegment.jointPoint[0] + vec.mData[0] * leftKneeUpperLeg.length;
 		leftKneeUpperLeg.jointPoint[1] = leftHipSegment.jointPoint[1] + vec.mData[2] * leftKneeUpperLeg.length;
 		leftKneeUpperLeg.jointPoint[2] = leftHipSegment.jointPoint[2] + -vec.mData[1] * leftKneeUpperLeg.length;
-		//cout << leftKneeUpperLeg.jointPoint[0] << "," << leftKneeUpperLeg.jointPoint[1] << "," << leftKneeUpperLeg.jointPoint[2] << ",";
 
 		//Finding right foot from the right knee point
 		q = avatar.b7;// .Inverse().mutiplication(avatar.b7);
@@ -648,7 +611,6 @@ void rotateAvatar(Avatar avatar)
 		rightFootLowerLeg.jointPoint[0] = rightKneeUpperLeg.jointPoint[0] + vec.mData[0] * rightFootLowerLeg.length;
 		rightFootLowerLeg.jointPoint[1] = rightKneeUpperLeg.jointPoint[1] + vec.mData[2] * rightFootLowerLeg.length;
 		rightFootLowerLeg.jointPoint[2] = rightKneeUpperLeg.jointPoint[2] + -vec.mData[1] * rightFootLowerLeg.length;
-		//cout << rightFootLowerLeg.jointPoint[0] << "," << rightFootLowerLeg.jointPoint[1] << "," << rightFootLowerLeg.jointPoint[2] << ",";
 
 		//Finding left foot from the left knee point
 		q = avatar.b9;// .Inverse().mutiplication(avatar.b9);
@@ -657,7 +619,6 @@ void rotateAvatar(Avatar avatar)
 		leftFootLowerLeg.jointPoint[0] = leftKneeUpperLeg.jointPoint[0] + vec.mData[0] * leftFootLowerLeg.length;
 		leftFootLowerLeg.jointPoint[1] = leftKneeUpperLeg.jointPoint[1] + vec.mData[2] * leftFootLowerLeg.length;;
 		leftFootLowerLeg.jointPoint[2] = leftKneeUpperLeg.jointPoint[2] + -vec.mData[1] * leftFootLowerLeg.length;
-		//cout << leftFootLowerLeg.jointPoint[0] << "," << leftFootLowerLeg.jointPoint[1] << "," << leftFootLowerLeg.jointPoint[2] << ",";
 	}
 	//---------------------------------------------Updating UpperBody starting from pelvis position --------------------
 	//Finding sternum from the pelvis point
@@ -667,7 +628,7 @@ void rotateAvatar(Avatar avatar)
 	sternumChest.jointPoint[0] = pelvisStomach.jointPoint[0] + vec.mData[0] * pelvisStomach.length;
 	sternumChest.jointPoint[1] = pelvisStomach.jointPoint[1] + vec.mData[2] * pelvisStomach.length;
 	sternumChest.jointPoint[2] = pelvisStomach.jointPoint[2] + -vec.mData[1] * pelvisStomach.length;
-	//cout << sternumChest.jointPoint[0] << "," << sternumChest.jointPoint[1] << "," << sternumChest.jointPoint[2] << ",";
+
 	//Finding neck from the sternum point
 	q = avatar.b1;// .Inverse().mutiplication(avatar.b1);
 	vec = q.mutiplication(quaternion{ 0,0,1,0 }.mutiplication(q.Inverse()));
@@ -675,7 +636,7 @@ void rotateAvatar(Avatar avatar)
 	neckToChin.jointPoint[0] = sternumChest.jointPoint[0] + vec.mData[0] * sternumChest.length;
 	neckToChin.jointPoint[1] = sternumChest.jointPoint[1] + vec.mData[2] * sternumChest.length;
 	neckToChin.jointPoint[2] = sternumChest.jointPoint[2] + -vec.mData[1] * sternumChest.length;
-	//cout << neckToChin.jointPoint[0] << "," << neckToChin.jointPoint[1] << "," << neckToChin.jointPoint[2] << ",";
+
 	headQuat = avatar.b1; //assigning headQuat for head rotation
 
 	//Finding head from the neck point
@@ -689,7 +650,7 @@ void rotateAvatar(Avatar avatar)
 	head.jointPoint[0] = chinToHead.jointPoint[0] + vec.mData[0] * chinToHead.length;
 	head.jointPoint[1] = chinToHead.jointPoint[1] + vec.mData[2] * chinToHead.length;
 	head.jointPoint[2] = chinToHead.jointPoint[2] + -vec.mData[1] * chinToHead.length;
-	//cout << head.jointPoint[0] << "," << head.jointPoint[1] << "," << head.jointPoint[2] << ",";
+
 	//---------------------------------------------- Hands ----------------------------------------------------
 		//Finding rightShoulder from the neck point
 	q = avatar.b1;// .Inverse().mutiplication(avatar.b1);
@@ -698,7 +659,7 @@ void rotateAvatar(Avatar avatar)
 	rightShoulderSegment.jointPoint[0] = neckToChin.jointPoint[0] + vec.mData[0] * rightShoulderSegment.length;
 	rightShoulderSegment.jointPoint[1] = neckToChin.jointPoint[1] + vec.mData[2] * rightShoulderSegment.length;
 	rightShoulderSegment.jointPoint[2] = neckToChin.jointPoint[2] + -vec.mData[1] * rightShoulderSegment.length;
-	//cout << rightShoulderSegment.jointPoint[0] << "," << rightShoulderSegment.jointPoint[1] << "," << rightShoulderSegment.jointPoint[2] << ",";
+
 	//Finding leftShoulder from the neck point
 	q = avatar.b1;// .Inverse().mutiplication(avatar.b1);
 	vec = q.mutiplication(quaternion{ 1,0,0,0 }.mutiplication(q.Inverse()));
@@ -706,45 +667,41 @@ void rotateAvatar(Avatar avatar)
 	leftShoulderSegment.jointPoint[0] = neckToChin.jointPoint[0] + vec.mData[0] * leftShoulderSegment.length;
 	leftShoulderSegment.jointPoint[1] = neckToChin.jointPoint[1] + vec.mData[2] * leftShoulderSegment.length;
 	leftShoulderSegment.jointPoint[2] = neckToChin.jointPoint[2] + -vec.mData[1] * leftShoulderSegment.length;
-	//cout << leftShoulderSegment.jointPoint[0] << "," << leftShoulderSegment.jointPoint[1] << "," << leftShoulderSegment.jointPoint[2] << ",";
+
 	//Finding right elbow from the right shoulder point
 	q = avatar.b2;// .Inverse().mutiplication(avatar.b2);
-	vec = q.mutiplication(quaternion{ 0,0,-1,0 }.mutiplication(q.Inverse())); // Attention Pose
-	//vec = q.mutiplication(quaternion{ -1,0,0,0 }.mutiplication(q.Inverse())); // T-Pose
+	vec = q.mutiplication(quaternion{ 0,0,-1,0 }.mutiplication(q.Inverse()));
 
 	rightElbowUpperArm.jointPoint[0] = rightShoulderSegment.jointPoint[0] + vec.mData[0] * rightElbowUpperArm.length;
 	rightElbowUpperArm.jointPoint[1] = rightShoulderSegment.jointPoint[1] + vec.mData[2] * rightElbowUpperArm.length;
 	rightElbowUpperArm.jointPoint[2] = rightShoulderSegment.jointPoint[2] + -vec.mData[1] * rightElbowUpperArm.length;
-	//cout << rightElbowUpperArm.jointPoint[0] << "," << rightElbowUpperArm.jointPoint[1] << "," << rightElbowUpperArm.jointPoint[2] << ",";
+
 	//Finding left elbow from the left shoulder point
 	q = avatar.b4;// .Inverse().mutiplication(avatar.b4);
-	vec = q.mutiplication(quaternion{ 0,0,-1,0 }.mutiplication(q.Inverse())); // Attention Pose
-	//vec = q.mutiplication(quaternion{ 1,0,0,0 }.mutiplication(q.Inverse())); // T-Pose
+	vec = q.mutiplication(quaternion{ 0,0,-1,0 }.mutiplication(q.Inverse()));
 
 	leftElbowUpperArm.jointPoint[0] = leftShoulderSegment.jointPoint[0] + vec.mData[0] * leftElbowUpperArm.length;
 	leftElbowUpperArm.jointPoint[1] = leftShoulderSegment.jointPoint[1] + vec.mData[2] * leftElbowUpperArm.length;
 	leftElbowUpperArm.jointPoint[2] = leftShoulderSegment.jointPoint[2] + -vec.mData[1] * leftElbowUpperArm.length;
-	//cout << leftElbowUpperArm.jointPoint[0] << "," << leftElbowUpperArm.jointPoint[1] << "," << leftElbowUpperArm.jointPoint[2] << ",";
+
 	//Finding right hand from the right elbow point
 	q = avatar.b3;// .Inverse().mutiplication(avatar.b3);
 	rightHand.rotation = q;
-	vec = q.mutiplication(quaternion{ 0,0,-1,0 }.mutiplication(q.Inverse())); // Attention pose
-	//vec = q.mutiplication(quaternion{ -1,0,0,0 }.mutiplication(q.Inverse())); // t-Pose
+	vec = q.mutiplication(quaternion{ 0,0,-1,0 }.mutiplication(q.Inverse()));
 
 	rightHandLowerArm.jointPoint[0] = rightElbowUpperArm.jointPoint[0] + vec.mData[0] * rightHandLowerArm.length;
 	rightHandLowerArm.jointPoint[1] = rightElbowUpperArm.jointPoint[1] + vec.mData[2] * rightHandLowerArm.length;
 	rightHandLowerArm.jointPoint[2] = rightElbowUpperArm.jointPoint[2] + -vec.mData[1] * rightHandLowerArm.length;
-	//cout << rightHandLowerArm.jointPoint[0] << "," << rightHandLowerArm.jointPoint[1] << "," << rightHandLowerArm.jointPoint[2]<<",";
+
 	//Finding left hand from the left elbow point
 	q = avatar.b5;// .Inverse().mutiplication(avatar.b5);
 	leftHand.rotation = q;
-	vec = q.mutiplication(quaternion{ 0,0,-1,0 }.mutiplication(q.Inverse())); // Attention Pose
-	//vec = q.mutiplication(quaternion{ 1,0,0,0 }.mutiplication(q.Inverse())); // T-pose
+	vec = q.mutiplication(quaternion{ 0,0,-1,0 }.mutiplication(q.Inverse()));
 
 	leftHandLowerArm.jointPoint[0] = leftElbowUpperArm.jointPoint[0] + vec.mData[0] * leftHandLowerArm.length;
 	leftHandLowerArm.jointPoint[1] = leftElbowUpperArm.jointPoint[1] + vec.mData[2] * leftHandLowerArm.length;
 	leftHandLowerArm.jointPoint[2] = leftElbowUpperArm.jointPoint[2] + -vec.mData[1] * leftHandLowerArm.length;
-	//cout << leftHandLowerArm.jointPoint[0] << "," << leftHandLowerArm.jointPoint[1] << "," << leftHandLowerArm.jointPoint[2]<<endl;
+
 	drawAvatar();
 }
 
@@ -1004,84 +961,6 @@ void rotateAvatar(int index)
 
 float i = 1;
 
-
-class MouseInteractorStyle5 : public vtkInteractorStyleTrackballActor
-{
-public:
-	static MouseInteractorStyle5* New();
-	vtkTypeMacro(MouseInteractorStyle5, vtkInteractorStyleTrackballActor);
-
-	virtual void OnKeyPress() override
-	{
-		vtkRenderWindowInteractor *rwi = this->Interactor;
-		std::string key = rwi->GetKeySym();
-		if (key == "n")
-		{
-			
-		}
-	}
-	
-	virtual void OnLeftButtonDown() override
-	{
-		// Forward events
-		vtkInteractorStyleTrackballActor::OnLeftButtonDown();
-
-		lllc = "DimGray"; lulc = "DimGray"; rllc = { "DimGray" }; rulc = { "DimGray" }; pc = "DimGray";
-		cc = "DimGray"; ruhc = "DimGray"; rlhc = "DimGray"; luhc = "DimGray"; llhc = "DimGray";
-
-		if (this->InteractionProp == this->lll) {
-			MotionSphere::sphereID = 9;
-			lllc = "Red";
-		}//std::cout << "Picked left lower leg." << std::endl;
-		else if (this->InteractionProp == this->lul) {
-			MotionSphere::sphereID = 8; //std::cout << "Picked left upper leg." << std::endl;
-			lulc = "Red";
-		}
-		else if (this->InteractionProp == this->rll) {
-			MotionSphere::sphereID = 7; //std::cout << "Picked right lower leg." << std::endl;
-			rllc = "Red";
-		}
-		else if (this->InteractionProp == this->rul) {
-			MotionSphere::sphereID = 6; //std::cout << "Picked right upper leg." << std::endl;
-			rulc = "Red";
-		}
-		else if (this->InteractionProp == this->pel) {
-			MotionSphere::sphereID = 0; //std::cout << "Picked pelvis." << std::endl;
-			pc = "Red";
-		}
-		else if (this->InteractionProp == this->chest)
-		{
-			MotionSphere::sphereID = 1; //std::cout << "Picked chest." << std::endl;
-			cc = "Red";
-		}
-		else if (this->InteractionProp == this->rlh) {
-			MotionSphere::sphereID = 3; //std::cout << "Picked right lower hand." << std::endl;
-			rlhc = "Red";
-		}
-		else if (this->InteractionProp == this->ruh) {
-			MotionSphere::sphereID = 2; //std::cout << "Picked right upper hand." << std::endl;
-			ruhc = "Red";
-		}
-		else if (this->InteractionProp == this->llh) {
-			MotionSphere::sphereID = 5; //std::cout << "Picked left lower hand." << std::endl;
-			llhc = "Red";
-		}
-
-		else if (this->InteractionProp == this->luh) {
-			MotionSphere::sphereID = 4; //std::cout << "Picked left upper hand." << std::endl;
-			luhc = "Red";
-		}
-		else
-			MotionSphere::sphereID = 0;
-
-		drawAvatar();
-
-	}
-
-	vtkActor *lll, *lul,*rll,*rul,*pel,*chest,*ruh,*rlh,*luh,*llh;
-};
-vtkStandardNewMacro(MouseInteractorStyle5);
-
 // Define interaction style
 class KeyPressInteractorStyle : public vtkInteractorStyleTrackballCamera
 {
@@ -1092,9 +971,9 @@ public:
 	virtual void OnKeyPress()
 	{
 		// Get the keypress
-		vtkRenderWindowInteractor *rwi = this->Interactor;
+		vtkRenderWindowInteractor* rwi = this->Interactor;
 		std::string key = rwi->GetKeySym();
-		
+
 		// Output the key that was pressed
 		std::cout << "Pressed " << key << std::endl;
 
@@ -1110,10 +989,7 @@ public:
 			i = 1;
 			VitruvianAvatar::isLoaded = true;
 		}
-		if (key == "b")
-		{
-			VitruvianAvatar::initializeVetruvianVtkAvatar();
-		}
+
 		// Forward events
 		vtkInteractorStyleTrackballCamera::OnKeyPress();
 	}
@@ -1121,49 +997,19 @@ public:
 };
 vtkStandardNewMacro(KeyPressInteractorStyle);
 
-bool switchInteractor = true;
 class vtkTimerCallback : public vtkCommand
 {
 public:
-	static vtkTimerCallback *New()
+	static vtkTimerCallback* New()
 	{
-		vtkTimerCallback *cb = new vtkTimerCallback;
+		vtkTimerCallback* cb = new vtkTimerCallback;
 		cb->TimerCount = 0;
 		return cb;
 	}
 
-	virtual void Execute(vtkObject *vtkNotUsed(caller), unsigned long eventId,
-		void *vtkNotUsed(callData))
+	virtual void Execute(vtkObject* vtkNotUsed(caller), unsigned long eventId,
+		void* vtkNotUsed(callData))
 	{
-		if (switchInteractor)
-		{
-			vtkSmartPointer<MouseInteractorStyle5> style1 =
-				vtkSmartPointer<MouseInteractorStyle5>::New();
-			style1->SetDefaultRenderer(renderer);
-
-			renderWindowInteractor->SetInteractorStyle(style1);
-			style1->rll = rightFootLowerLeg.cylinderActor;
-			style1->lll = leftFootLowerLeg.cylinderActor;
-			style1->rul = rightKneeUpperLeg.cylinderActor;
-			style1->lul = leftKneeUpperLeg.cylinderActor;
-			style1->rlh = rightHandLowerArm.cylinderActor;
-			style1->llh = leftHandLowerArm.cylinderActor;
-			style1->ruh = rightElbowUpperArm.cylinderActor;
-			style1->luh = leftElbowUpperArm.cylinderActor;
-			style1->pel = pelvisStomach.cylinderActor;
-			style1->chest = sternumChest.cylinderActor;
-			switchInteractor = !switchInteractor;
-		}
-		else
-		{
-			vtkSmartPointer<vtkInteractorStyleTrackballCamera> style =
-				vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
-			style->SetDefaultRenderer(renderer);
-
-			renderWindowInteractor->SetInteractorStyle(style);
-			switchInteractor = !switchInteractor;
-		}
-		
 		if (vtkCommand::TimerEvent == eventId)
 		{
 			++this->TimerCount;
@@ -1173,25 +1019,21 @@ public:
 			//rotateAvatar(i);
 			//i++;
 			rotateAvatar(VitruvianAvatar::vitruvianAvatarUpdate);
-			//cout << i++ <<"->"<< VitruvianAvatar::vitruvianAvatarUpdate.b2<<endl;
-		}		
+		}
 		renderWindow->Render();
 	}
 
 private:
 	int TimerCount;
-
 };
-
-
 
 void VitruvianAvatar::initializeVetruvianVtkAvatar()
 {
 	headUnit = VitruvianAvatar::humanHeight / 7.5;
-	rightFootLowerLeg.jointPoint[0] = -0.5*headUnit;
+	rightFootLowerLeg.jointPoint[0] = -0.5 * headUnit;
 	rightFootLowerLeg.jointPoint[1] = rightFootLowerLeg.jointPoint[2] = 0;
 
-	leftFootLowerLeg.jointPoint[0] = 0.5*headUnit;
+	leftFootLowerLeg.jointPoint[0] = 0.5 * headUnit;
 	leftFootLowerLeg.jointPoint[1] = leftFootLowerLeg.jointPoint[2] = 0;
 
 	leftFootLowerLeg.length = rightFootLowerLeg.length = 1.5 * headUnit;
@@ -1205,35 +1047,23 @@ void VitruvianAvatar::initializeVetruvianVtkAvatar()
 	pelvisStomach.length = sternumChest.length = headUnit;
 	neckToChin.length = chinToHead.length = headUnit * 0.5;
 
-	rightShoulderSegment.length = leftShoulderSegment.length = 0.8*headUnit;
-	rightElbowUpperArm.length = leftElbowUpperArm.length = 1.2*headUnit;
-	rightHandLowerArm.length = leftHandLowerArm.length = 1.2*headUnit;
+	rightShoulderSegment.length = leftShoulderSegment.length = 0.8 * headUnit;
+	rightElbowUpperArm.length = leftElbowUpperArm.length = 1.2 * headUnit;
+	rightHandLowerArm.length = leftHandLowerArm.length = 1.2 * headUnit;
 
 	//------------------------------- read obj files --------------------------------
 	// readRightHand.
-	rightHand.handSource->SetFileName("..\\src\\data\\avtar\\RightHand.obj");
+	rightHand.handSource->SetFileName(".\\data\\avtar\\RightHand.obj");
 	rightHand.handSource->Update();
 
 	// readLeftHand.
-	leftHand.handSource->SetFileName("..\\src\\data\\avtar\\LeftHand.obj");
+	leftHand.handSource->SetFileName(".\\data\\avtar\\LeftHand.obj");
 	leftHand.handSource->Update();
 
 	//readHead
-	headSource->SetFileName("..\\src\\data\\avtar\\humanHead.obj");
+	headSource->SetFileName(".\\data\\avtar\\humanHead.obj");
 	headSource->Update();
 
-	//create a texture map for torso
-	vtkSmartPointer<vtkTexture> texture =
-		vtkSmartPointer<vtkTexture>::New();
-	vtkSmartPointer<vtkJPEGReader> reader =
-		vtkSmartPointer<vtkJPEGReader>::New();
-	reader->SetFileName("..\\src\\data\\avtar\\headmap.jpg");
-	// Apply the texture
-	texture->SetInputConnection(reader->GetOutputPort());
-	headActor->SetTexture(texture);
-
-	lllc = "DimGray"; lulc="DimGray"; rllc = "DimGray"; rulc = "DimGray"; pc = "DimGray"; 
-	cc = "DimGray"; ruhc = "DimGray"; rlhc = "DimGray"; luhc = "DimGray"; llhc = "DimGray";
 	updatejoints();
 }
 
@@ -1252,69 +1082,19 @@ void VitruvianAvatar::startVetruvianAvatar()
 	// Initialize must be called prior to creating timer events.
 	renderWindowInteractor->Initialize();
 
-	vtkSmartPointer<vtkCallbackCommand> keypressCallback =
-		vtkSmartPointer<vtkCallbackCommand>::New();
-	keypressCallback->SetCallback(KeypressCallbackFunction);
-	renderWindowInteractor->AddObserver(vtkCommand::KeyPressEvent, keypressCallback);
-
 	// Sign up to receive TimerEvent
 	vtkSmartPointer<vtkTimerCallback> cb =
 		vtkSmartPointer<vtkTimerCallback>::New();
 	renderWindowInteractor->AddObserver(vtkCommand::TimerEvent, cb);
 
-	int timerId = renderWindowInteractor->CreateRepeatingTimer(0.00000000001);
+	int timerId = renderWindowInteractor->CreateRepeatingTimer(10);
 
 	vtkSmartPointer<KeyPressInteractorStyle> style =
 		vtkSmartPointer<KeyPressInteractorStyle>::New();
-	style->SetDefaultRenderer(renderer);
-	
 	renderWindowInteractor->SetInteractorStyle(style);
+	style->SetCurrentRenderer(renderer);
 
 	//Render and interact
 	renderWindow->Render();
 	renderWindowInteractor->Start();
-}
-
-vtkSmartPointer<vtkRenderer> VitruvianAvatar::getVitruvianAvatarRenderer()
-{
-	return renderer;
-}
-
-void KeypressCallbackFunction(vtkObject* caller, long unsigned int vtkNotUsed(eventId), void* vtkNotUsed(clientData), void* vtkNotUsed(callData))
-{
-	vtkRenderWindowInteractor *iren =
-		static_cast<vtkRenderWindowInteractor*>(caller);
-
-	string key = iren->GetKeySym();
-	//std::cout << "Pressed: " << iren->GetKeySym() << std::endl;
-	if (key == "m")
-	{
-		vtkSmartPointer<MouseInteractorStyle5> style1 =
-			vtkSmartPointer<MouseInteractorStyle5>::New();
-		style1->SetDefaultRenderer(renderer);
-
-		renderWindowInteractor->SetInteractorStyle(style1);
-		style1->rll = rightFootLowerLeg.cylinderActor;
-		style1->lll = leftFootLowerLeg.cylinderActor;
-		style1->rul = rightKneeUpperLeg.cylinderActor;
-		style1->lul = leftKneeUpperLeg.cylinderActor;
-		style1->rlh = rightHandLowerArm.cylinderActor;
-		style1->llh = leftHandLowerArm.cylinderActor;
-		style1->ruh = rightElbowUpperArm.cylinderActor;
-		style1->luh = leftElbowUpperArm.cylinderActor;
-		style1->pel = pelvisStomach.cylinderActor;
-		style1->chest = sternumChest.cylinderActor;
-	}
-	if (key == "n")
-	{
-		vtkSmartPointer<vtkInteractorStyleTrackballCamera> style =
-			vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
-		style->SetDefaultRenderer(renderer);
-
-		renderWindowInteractor->SetInteractorStyle(style);
-	}
-	if (key == "b")
-	{
-		VitruvianAvatar::initializeVetruvianVtkAvatar();
-	}
 }
