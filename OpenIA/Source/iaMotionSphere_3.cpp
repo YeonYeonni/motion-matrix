@@ -1,4 +1,3 @@
-﻿#include "iaMotionSphere_3.h"
 #include "iaMotionSphere.h"
 #include <iostream>
 #include <iomanip>
@@ -7,6 +6,12 @@
 #include "iaSphereUtility.h"
 #include "iaAcquireGesture.h"
 #include "Model_PLY.h"
+
+#include "imgui.h"
+#include "imgui_impl_opengl3.h"
+#include "imgui_impl_glut.h"
+#include <windows.h>
+#include <GL/GL.h>
 
 using namespace std;
 MotionSphere ms;
@@ -153,7 +158,7 @@ void drawString(const char* str, float x, float y, float color[4], void* font)
 	glColor4fv(color);          // set text color
 	glRasterPos2i(x, y);        // place text position
 
-	// loop all characters in the string
+								// loop all characters in the string
 	while (*str)
 	{
 		glutBitmapCharacter(font, *str);
@@ -178,7 +183,7 @@ void drawString3D(const char* str, float pos[3], float color[4], void* font)
 	glColor4fv(color);          // set text color
 	glRasterPos3fv(pos);        // place text position
 
-	// loop all characters in the string
+								// loop all characters in the string
 	while (*str)
 	{
 		glutBitmapCharacter(font, *str);
