@@ -1,3 +1,4 @@
+#include "iaMotionSphere_3.h"
 #include "iaMotionSphere.h"
 #include <iostream>
 #include <iomanip>
