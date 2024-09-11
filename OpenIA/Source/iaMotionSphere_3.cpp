@@ -131,6 +131,18 @@ float theta_phi_b7[20014][2];
 float theta_phi_b8[20014][2];
 float theta_phi_b9[20014][2];
 
+float extheta_phi_b0[20014][2];
+float extheta_phi_b1[20014][2];
+float extheta_phi_b2[20014][2];
+float extheta_phi_b3[20014][2];
+float extheta_phi_b4[20014][2];
+float extheta_phi_b5[20014][2];
+float extheta_phi_b6[20014][2];
+float extheta_phi_b7[20014][2];
+float extheta_phi_b8[20014][2];
+float extheta_phi_b9[20014][2];
+
+
 float saveTrajForEdit[20014][4];
 
 float stencilHash[10][255];
