@@ -20,7 +20,14 @@ struct Avatar {
 
 class SphereUtility {
 public:
-
+	TVec3 startingVector = { 0,0,-1 };
+	Avatar avatarData[20000];
+	//Avatar getSfq[500];
+	TVec3 vectors[20000][10];
+	float twistAngles[20000][10];
+	int noOfFrames = 400000;
+	int subOption;
+	TVec3 tempVec = {0,0,-1};
 public:
 	void readAvatarData(std::string fileName);
 	void realTimeRender();
