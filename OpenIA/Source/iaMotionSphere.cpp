@@ -2071,6 +2071,15 @@ void sphereDisplay(void)
 		drawTrajectory(ms.maxWidth / 2, ms.minHeight, ms.maxWidth / 2, ms.maxHeight / 2, rotEnable4, pointTranslateX4, pointTranslateY4, pointTranslateZ4, zval4, 4);
 	}
 
+
+	// IMGUI
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGLUT_NewFrame();
+	ImGuiIO& io = ImGui::GetIO(); // ImGui 입력/출력 객체를 가져옵니다.
+	printf("WantCaptureMouse: %d, WantCaptureKeyboard: %d\n", io.WantCaptureMouse, io.WantCaptureKeyboard);
+
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	glutSwapBuffers();
 }
 
