@@ -2076,7 +2076,15 @@ void sphereDisplay(void)
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGLUT_NewFrame();
 	ImGuiIO& io = ImGui::GetIO(); // ImGui 입력/출력 객체를 가져옵니다.
-	printf("WantCaptureMouse: %d, WantCaptureKeyboard: %d\n", io.WantCaptureMouse, io.WantCaptureKeyboard);
+	//printf("WantCaptureMouse: %d, WantCaptureKeyboard: %d\n", io.WantCaptureMouse, io.WantCaptureKeyboard);
+
+	ImGui::NewFrame();
+	ImGui::SetNextWindowSize(ImVec2(325, 325));
+	ImGui::Begin("Motion Edit Mode");
+
+	ImGui::Text("Current Joint: %d", sphereID);
+	ImGui::Text("Current Point: %d", stencilIndex);
+	ImGui::SameLine();
 
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
