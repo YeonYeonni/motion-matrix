@@ -1251,7 +1251,7 @@ void sphereMouseEvent(int button, int state, int x, int y)
 		xdiff = (yrot + x);
 		ydiff = -y + xrot;
 	}
-
+//upperbody(rightsholder.leftsholder.anchers)
 	if (mouseDown && !toggleEdit)
 	{
 		glReadPixels(x, ms.maxHeight - y - 1, 1, 1, GL_STENCIL_INDEX, GL_UNSIGNED_INT, &stencilIndex);
