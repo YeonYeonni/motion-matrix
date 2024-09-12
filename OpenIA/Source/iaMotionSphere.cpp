@@ -2086,6 +2086,45 @@ void sphereDisplay(void)
 	ImGui::Text("Current Point: %d", stencilIndex);
 	ImGui::SameLine();
 
+	switch (sphereID)
+	{
+	case 0: w = traj_b0[stencilIndex][0], x = traj_b0[stencilIndex][1], y = traj_b0[stencilIndex][2], z = traj_b0[stencilIndex][3];	break;
+	case 1: w = traj_b1[stencilIndex][0], x = traj_b1[stencilIndex][1], y = traj_b1[stencilIndex][2], z = traj_b1[stencilIndex][3];	break;
+	case 2: w = traj_b2[stencilIndex][0], x = traj_b2[stencilIndex][1], y = traj_b2[stencilIndex][2], z = traj_b2[stencilIndex][3];	break;
+	case 3: w = traj_b3[stencilIndex][0], x = traj_b3[stencilIndex][1], y = traj_b3[stencilIndex][2], z = traj_b3[stencilIndex][3];	break;
+	case 4: w = traj_b4[stencilIndex][0], x = traj_b4[stencilIndex][1], y = traj_b4[stencilIndex][2], z = traj_b4[stencilIndex][3];	break;
+	case 5: w = traj_b5[stencilIndex][0], x = traj_b5[stencilIndex][1], y = traj_b5[stencilIndex][2], z = traj_b5[stencilIndex][3];	break;
+	case 6: w = traj_b6[stencilIndex][0], x = traj_b6[stencilIndex][1], y = traj_b6[stencilIndex][2], z = traj_b6[stencilIndex][3];	break;
+	case 7: w = traj_b7[stencilIndex][0], x = traj_b7[stencilIndex][1], y = traj_b7[stencilIndex][2], z = traj_b7[stencilIndex][3];	break;
+	case 8: w = traj_b8[stencilIndex][0], x = traj_b8[stencilIndex][1], y = traj_b8[stencilIndex][2], z = traj_b8[stencilIndex][3];	break;
+	case 9: w = traj_b9[stencilIndex][0], x = traj_b9[stencilIndex][1], y = traj_b9[stencilIndex][2], z = traj_b9[stencilIndex][3];	break;
+	default:
+		break;
+	}
+
+	// Adjust values
+	if (ImGui::BeginTabBar("Tabs"))
+	{
+		// Sphere
+		if (ImGui::BeginTabItem("Sphere Coord"))
+		{
+			ImGui::Text("Adjust Values");
+
+			// 현재 Quaternion 값
+			ImGui::Text("w: %.3f, x: %.3f, y: %.3f, z: %.3f", w, x, y, z);
+		}
+
+		// Quaternion
+		if (ImGui::BeginTabItem("Quaternion"))
+		{
+			ImGui::Text("Adjust Values");
+
+			// 현재 Quaternion 값
+			ImGui::Text("w: %.3f, x: %.3f, y: %.3f, z: %.3f", w, x, y, z);
+
+		}
+	}
+
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	glutSwapBuffers();
