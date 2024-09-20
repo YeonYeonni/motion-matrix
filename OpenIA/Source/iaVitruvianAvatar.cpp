@@ -923,6 +923,8 @@ void rotateAvatar(int index)
 
 	//Finding right elbow from the right shoulder point
 	q = initialAvatar.b2.Inverse().mutiplication(currentAvatar.b2);
+	quaternion tPoseAdjustment2 = quaternion::fromAxisAngle({ -1, 1, 0 }, 1.5);  // T 포즈로 회전 보정
+	q = tPoseAdjustment2.mutiplication(avatar.b2);  // 보정된 쿼터니언 적용
 	vec = q.mutiplication(quaternion{ 0,0,-1,0 }.mutiplication(q.Inverse()));
 
 	rightElbowUpperArm.jointPoint[0] = rightShoulderSegment.jointPoint[0] + vec.mData[0] * rightElbowUpperArm.length;
