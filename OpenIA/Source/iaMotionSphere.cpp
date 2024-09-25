@@ -12,6 +12,7 @@
 #include "imgui_impl_glut.h"
 #include <windows.h>
 #include <GL/GL.h>
+#include "implot.h"
 
 using namespace std;
 MotionSphere ms;
@@ -143,11 +144,17 @@ float textColor[4] = { 1, 0, 0, 1 };
 float pos[3];
 std::stringstream ss;
 
-// IMGUI
+// Imgui
 float w = 1.0f, x = 0.0f, y = 0.0f, z = 0.0f;
 float theta = 0.0f, phi = 0.0f;
 float magnitude = 0.01;
 float degree = 1.0;
+
+// Implot
+static bool selecting_range = false;  // 선택 중
+static float range_start = 0.0f;  // 선택 구간 시작
+static float range_end = 0.0f;  // 선택 구간 끝
+static bool is_selected = false;  // 구간이 선택되었는지
 
 ///////////////////////////////////////////////////////////////////////////////
 // write 2d text using GLUT
@@ -1890,9 +1897,9 @@ void keyBoardEvent(unsigned char key, int x, int y)
 	if (key == '1') //Key-1
 	{
 		realtime = false;
-		//startFresh("D:\\PoseTrack19\\src\\out\\build\\SkeletonData\\test.txt");
-		//startFresh("D:\\PoseTrack19\\src\\out\\build\\SkeletonData\\blender2ms_test\\test.txt");
-		startFresh("D:\\PoseTrack19\\src\\out\\build\\SkeletonData\\240820_clap\\FB-Raw-Data-000-13919.txt");
+		//startFresh("D:\\PoseTrack19\\src\\out\\build\\SkeletonData\\FB-Raw-Data-000-114162.txt");
+		startFresh("D:\\PoseTrack19\\src\\out\\build\\SkeletonData\\20240921\\leftarm_adjusted.txt");
+		//startFresh("D:\\PoseTrack19\\src\\out\\build\\SkeletonData\\20240921\\leftarm.txt");
 	}
 
 	if (key == '2') //Key-1
@@ -2071,8 +2078,9 @@ void sphereDisplay(void)
 		drawTrajectory(ms.maxWidth / 2, ms.minHeight, ms.maxWidth / 2, ms.maxHeight / 2, rotEnable4, pointTranslateX4, pointTranslateY4, pointTranslateZ4, zval4, 4);
 	}
 
-
-	// IMGUI
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////// Motion Editing Mode /////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGLUT_NewFrame();
 	ImGuiIO& io = ImGui::GetIO(); // ImGui 입력/출력 객체를 가져옵니다.
@@ -2085,6 +2093,15 @@ void sphereDisplay(void)
 	ImGui::Text("Current Joint: %d", sphereID);
 	ImGui::Text("Current Point: %d", stencilIndex);
 	ImGui::SameLine();
+	if (ImGui::Button("Prev") && (stencilIndex > 0))
+	{
+		stencilIndex -= 1;
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Next") && (stencilIndex < trajCount))
+	{
+		stencilIndex += 1;
+	}
 
 	switch (sphereID)
 	{
@@ -2112,6 +2129,248 @@ void sphereDisplay(void)
 
 			// 현재 Quaternion 값
 			ImGui::Text("w: %.3f, x: %.3f, y: %.3f, z: %.3f", w, x, y, z);
+
+			ImGui::Text("Magnitude: %.0f", degree);
+
+			ImGui::SameLine();
+			if (ImGui::Button("-"))
+			{
+				degree -= 1.0;
+				if (degree < 0)
+				{
+					degree = 0;
+				}
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("+"))
+			{
+				degree += 1.0;
+			}
+
+			if (ImGui::Button("Theta +"))
+			{
+				quaternion q;
+				if (stencilIndex > 0)
+				{
+					q = quaternion(0.0087155743, 0, 5.33894E-18, 0.999962);
+
+					for (int i = 0; i < degree; i++)
+					{
+						switch (sphereID)
+						{
+						case 0: ms.su->avatarData[stencilIndex - 1].b0 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b0);	break;
+						case 1: ms.su->avatarData[stencilIndex - 1].b1 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b1);	break;
+						case 2: ms.su->avatarData[stencilIndex - 1].b2 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b2);	break;
+						case 3: ms.su->avatarData[stencilIndex - 1].b3 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b3);	break;
+						case 4: ms.su->avatarData[stencilIndex - 1].b4 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b4);	break;
+						case 5: ms.su->avatarData[stencilIndex - 1].b5 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b5);	break;
+						case 6: ms.su->avatarData[stencilIndex - 1].b6 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b6);	break;
+						case 7: ms.su->avatarData[stencilIndex - 1].b7 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b7);	break;
+						case 8: ms.su->avatarData[stencilIndex - 1].b8 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b8);	break;
+						case 9: ms.su->avatarData[stencilIndex - 1].b9 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b9);	break;
+						default:
+							break;
+						}
+						updateTrajectoryArray(stencilIndex - 1);
+					}
+
+				}
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Theta -"))
+			{
+				quaternion q;
+				if (stencilIndex > 0)
+				{
+					q = quaternion(-0.0087155743, 0, 5.33894E-18, 0.999962);
+
+					for (int i = 0; i < degree; i++)
+					{
+						switch (sphereID)
+						{
+						case 0: ms.su->avatarData[stencilIndex - 1].b0 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b0);	break;
+						case 1: ms.su->avatarData[stencilIndex - 1].b1 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b1);	break;
+						case 2: ms.su->avatarData[stencilIndex - 1].b2 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b2);	break;
+						case 3: ms.su->avatarData[stencilIndex - 1].b3 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b3);	break;
+						case 4: ms.su->avatarData[stencilIndex - 1].b4 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b4);	break;
+						case 5: ms.su->avatarData[stencilIndex - 1].b5 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b5);	break;
+						case 6: ms.su->avatarData[stencilIndex - 1].b6 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b6);	break;
+						case 7: ms.su->avatarData[stencilIndex - 1].b7 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b7);	break;
+						case 8: ms.su->avatarData[stencilIndex - 1].b8 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b8);	break;
+						case 9: ms.su->avatarData[stencilIndex - 1].b9 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b9);	break;
+						default:
+							break;
+						}
+						updateTrajectoryArray(stencilIndex - 1);
+					}
+				}
+			}
+
+			if (ImGui::Button("Phi +"))
+			{
+				quaternion q;
+				if (stencilIndex > 0)
+				{
+					q = quaternion(0, 5.33894E-18, 0.0087155743, 0.999962);
+
+					for (int i = 0; i < degree; i++)
+					{
+						switch (sphereID)
+						{
+						case 0: ms.su->avatarData[stencilIndex - 1].b0 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b0);	break;
+						case 1: ms.su->avatarData[stencilIndex - 1].b1 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b1);	break;
+						case 2: ms.su->avatarData[stencilIndex - 1].b2 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b2);	break;
+						case 3: ms.su->avatarData[stencilIndex - 1].b3 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b3);	break;
+						case 4: ms.su->avatarData[stencilIndex - 1].b4 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b4);	break;
+						case 5: ms.su->avatarData[stencilIndex - 1].b5 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b5);	break;
+						case 6: ms.su->avatarData[stencilIndex - 1].b6 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b6);	break;
+						case 7: ms.su->avatarData[stencilIndex - 1].b7 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b7);	break;
+						case 8: ms.su->avatarData[stencilIndex - 1].b8 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b8);	break;
+						case 9: ms.su->avatarData[stencilIndex - 1].b9 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b9);	break;
+						default:
+							break;
+						}
+						updateTrajectoryArray(stencilIndex - 1);
+					}
+				}
+
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Phi -"))
+			{
+				quaternion q;
+				if (stencilIndex > 0)
+				{
+					q = quaternion(0, 5.33894E-18, -0.0087155743, 0.999962);
+
+					for (int i = 0; i < degree; i++)
+					{
+						switch (sphereID)
+						{
+						case 0: ms.su->avatarData[stencilIndex - 1].b0 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b0);	break;
+						case 1: ms.su->avatarData[stencilIndex - 1].b1 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b1);	break;
+						case 2: ms.su->avatarData[stencilIndex - 1].b2 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b2);	break;
+						case 3: ms.su->avatarData[stencilIndex - 1].b3 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b3);	break;
+						case 4: ms.su->avatarData[stencilIndex - 1].b4 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b4);	break;
+						case 5: ms.su->avatarData[stencilIndex - 1].b5 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b5);	break;
+						case 6: ms.su->avatarData[stencilIndex - 1].b6 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b6);	break;
+						case 7: ms.su->avatarData[stencilIndex - 1].b7 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b7);	break;
+						case 8: ms.su->avatarData[stencilIndex - 1].b8 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b8);	break;
+						case 9: ms.su->avatarData[stencilIndex - 1].b9 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b9);	break;
+						default:
+							break;
+						}
+						updateTrajectoryArray(stencilIndex - 1);
+					}
+				}
+			}
+
+			if (ImGui::Button("z +"))
+			{
+				quaternion q;
+				if (stencilIndex > 0)
+				{
+					q = quaternion(0, 0.0087155743, 5.33894E-18, 0.999962);
+
+					for (int i = 0; i < degree; i++)
+					{
+						switch (sphereID)
+						{
+						case 0: ms.su->avatarData[stencilIndex - 1].b0 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b0);	break;
+						case 1: ms.su->avatarData[stencilIndex - 1].b1 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b1);	break;
+						case 2: ms.su->avatarData[stencilIndex - 1].b2 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b2);	break;
+						case 3: ms.su->avatarData[stencilIndex - 1].b3 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b3);	break;
+						case 4: ms.su->avatarData[stencilIndex - 1].b4 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b4);	break;
+						case 5: ms.su->avatarData[stencilIndex - 1].b5 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b5);	break;
+						case 6: ms.su->avatarData[stencilIndex - 1].b6 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b6);	break;
+						case 7: ms.su->avatarData[stencilIndex - 1].b7 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b7);	break;
+						case 8: ms.su->avatarData[stencilIndex - 1].b8 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b8);	break;
+						case 9: ms.su->avatarData[stencilIndex - 1].b9 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b9);	break;
+						default:
+							break;
+						}
+						updateTrajectoryArray(stencilIndex - 1);
+					}
+				}
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("z -"))
+			{
+				quaternion q;
+				if (stencilIndex > 0)
+				{
+					q = quaternion(0, -0.0087155743, 5.33894E-18, 0.999962);
+
+					for (int i = 0; i < degree; i++)
+					{
+						switch (sphereID)
+						{
+						case 0: ms.su->avatarData[stencilIndex - 1].b0 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b0);	break;
+						case 1: ms.su->avatarData[stencilIndex - 1].b1 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b1);	break;
+						case 2: ms.su->avatarData[stencilIndex - 1].b2 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b2);	break;
+						case 3: ms.su->avatarData[stencilIndex - 1].b3 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b3);	break;
+						case 4: ms.su->avatarData[stencilIndex - 1].b4 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b4);	break;
+						case 5: ms.su->avatarData[stencilIndex - 1].b5 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b5);	break;
+						case 6: ms.su->avatarData[stencilIndex - 1].b6 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b6);	break;
+						case 7: ms.su->avatarData[stencilIndex - 1].b7 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b7);	break;
+						case 8: ms.su->avatarData[stencilIndex - 1].b8 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b8);	break;
+						case 9: ms.su->avatarData[stencilIndex - 1].b9 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b9);	break;
+						default:
+							break;
+						}
+						updateTrajectoryArray(stencilIndex - 1);
+					}
+				}
+			}
+
+			// Save
+			if (ImGui::Button("Save"))
+			{
+				time_t curr_time;
+				curr_time = time(NULL);
+				tm* tm_local = localtime(&curr_time);
+
+				ofstream avatarDataFile;
+
+				char fileName[1024];
+
+				sprintf_s(fileName, ".\\SkeletonData\\saveFile.txt", 0, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
+				avatarDataFile.open(fileName);
+
+				avatarDataFile << "FULLBODY\t" << 1 << "\n" << "Frames:" << "\t" << trajCount << "\n";
+
+				for (int tCount = 0; tCount < trajCount; tCount++)
+				{
+					//cout << tCount << " : " << ms.su->avatarData[tCount].b0.mData[3] << ", " << ms.su->avatarData[tCount].b0.mData[0] << ", " << ms.su->avatarData[tCount].b0.mData[1] << ", " << ms.su->avatarData[tCount].b0.mData[2] << endl;
+
+					avatarDataFile
+						<< ms.su->avatarData[tCount].b0.mData[3] << '\t' << ms.su->avatarData[tCount].b0.mData[0] << '\t' << ms.su->avatarData[tCount].b0.mData[1] << '\t' << ms.su->avatarData[tCount].b0.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b1.mData[3] << '\t' << ms.su->avatarData[tCount].b1.mData[0] << '\t' << ms.su->avatarData[tCount].b1.mData[1] << '\t' << ms.su->avatarData[tCount].b1.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b2.mData[3] << '\t' << ms.su->avatarData[tCount].b2.mData[0] << '\t' << ms.su->avatarData[tCount].b2.mData[1] << '\t' << ms.su->avatarData[tCount].b2.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b3.mData[3] << '\t' << ms.su->avatarData[tCount].b3.mData[0] << '\t' << ms.su->avatarData[tCount].b3.mData[1] << '\t' << ms.su->avatarData[tCount].b3.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b4.mData[3] << '\t' << ms.su->avatarData[tCount].b4.mData[0] << '\t' << ms.su->avatarData[tCount].b4.mData[1] << '\t' << ms.su->avatarData[tCount].b4.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b5.mData[3] << '\t' << ms.su->avatarData[tCount].b5.mData[0] << '\t' << ms.su->avatarData[tCount].b5.mData[1] << '\t' << ms.su->avatarData[tCount].b5.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b6.mData[3] << '\t' << ms.su->avatarData[tCount].b6.mData[0] << '\t' << ms.su->avatarData[tCount].b6.mData[1] << '\t' << ms.su->avatarData[tCount].b6.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b7.mData[3] << '\t' << ms.su->avatarData[tCount].b7.mData[0] << '\t' << ms.su->avatarData[tCount].b7.mData[1] << '\t' << ms.su->avatarData[tCount].b7.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b8.mData[3] << '\t' << ms.su->avatarData[tCount].b8.mData[0] << '\t' << ms.su->avatarData[tCount].b8.mData[1] << '\t' << ms.su->avatarData[tCount].b8.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b9.mData[3] << '\t' << ms.su->avatarData[tCount].b9.mData[0] << '\t' << ms.su->avatarData[tCount].b9.mData[1] << '\t' << ms.su->avatarData[tCount].b9.mData[2] << "\n";
+				}
+
+				avatarDataFile.close();
+			}
+
+			// Reset
+			if (ImGui::Button("Reset"))
+			{
+
+			}
+
+			// Undo
+			if (ImGui::Button("Undo"))
+			{
+
+			}
+			ImGui::EndTabItem();
 		}
 
 		// Quaternion
@@ -2122,9 +2381,363 @@ void sphereDisplay(void)
 			// 현재 Quaternion 값
 			ImGui::Text("w: %.3f, x: %.3f, y: %.3f, z: %.3f", w, x, y, z);
 
+			ImGui::Text("Magnitude: %.2f", magnitude);
+			ImGui::SameLine();
+			if (ImGui::Button("-"))
+			{
+				magnitude -= 0.01;
+
+				if (magnitude < 0.00)
+				{
+					magnitude = 0.00;
+				}
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("+"))
+			{
+				magnitude += 0.01;
+			}
+
+			if (ImGui::Button("w +"))
+			{
+
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("w -"))
+			{
+
+			}
+
+			if (ImGui::Button("x +"))
+			{
+				quaternion q;
+				if (stencilIndex > 0)
+				{
+					q = quaternion(magnitude, 0, 0, 0);
+
+					switch (sphereID)
+					{
+					case 0: ms.su->avatarData[stencilIndex - 1].b0 = q.addition(ms.su->avatarData[stencilIndex - 1].b0);	break;
+					case 1: ms.su->avatarData[stencilIndex - 1].b1 = q.addition(ms.su->avatarData[stencilIndex - 1].b1);	break;
+					case 2: ms.su->avatarData[stencilIndex - 1].b2 = q.addition(ms.su->avatarData[stencilIndex - 1].b2);	break;
+					case 3: ms.su->avatarData[stencilIndex - 1].b3 = q.addition(ms.su->avatarData[stencilIndex - 1].b3);	break;
+					case 4: ms.su->avatarData[stencilIndex - 1].b4 = q.addition(ms.su->avatarData[stencilIndex - 1].b4);	break;
+					case 5: ms.su->avatarData[stencilIndex - 1].b5 = q.addition(ms.su->avatarData[stencilIndex - 1].b5);	break;
+					case 6: ms.su->avatarData[stencilIndex - 1].b6 = q.addition(ms.su->avatarData[stencilIndex - 1].b6);	break;
+					case 7: ms.su->avatarData[stencilIndex - 1].b7 = q.addition(ms.su->avatarData[stencilIndex - 1].b7);	break;
+					case 8: ms.su->avatarData[stencilIndex - 1].b8 = q.addition(ms.su->avatarData[stencilIndex - 1].b8);	break;
+					case 9: ms.su->avatarData[stencilIndex - 1].b9 = q.addition(ms.su->avatarData[stencilIndex - 1].b9);	break;
+					default:
+						break;
+					}
+					updateTrajectoryArray(stencilIndex - 1);
+				}
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("x -"))
+			{
+				quaternion q;
+				if (stencilIndex > 0)
+				{
+					q = quaternion(magnitude, 0, 0, 0);
+
+					switch (sphereID)
+					{
+					case 0: ms.su->avatarData[stencilIndex - 1].b0 = q.subtraction(ms.su->avatarData[stencilIndex - 1].b0);	break;
+					case 1: ms.su->avatarData[stencilIndex - 1].b1 = q.subtraction(ms.su->avatarData[stencilIndex - 1].b1);	break;
+					case 2: ms.su->avatarData[stencilIndex - 1].b2 = q.subtraction(ms.su->avatarData[stencilIndex - 1].b2);	break;
+					case 3: ms.su->avatarData[stencilIndex - 1].b3 = q.subtraction(ms.su->avatarData[stencilIndex - 1].b3);	break;
+					case 4: ms.su->avatarData[stencilIndex - 1].b4 = q.subtraction(ms.su->avatarData[stencilIndex - 1].b4);	break;
+					case 5: ms.su->avatarData[stencilIndex - 1].b5 = q.subtraction(ms.su->avatarData[stencilIndex - 1].b5);	break;
+					case 6: ms.su->avatarData[stencilIndex - 1].b6 = q.subtraction(ms.su->avatarData[stencilIndex - 1].b6);	break;
+					case 7: ms.su->avatarData[stencilIndex - 1].b7 = q.subtraction(ms.su->avatarData[stencilIndex - 1].b7);	break;
+					case 8: ms.su->avatarData[stencilIndex - 1].b8 = q.subtraction(ms.su->avatarData[stencilIndex - 1].b8);	break;
+					case 9: ms.su->avatarData[stencilIndex - 1].b9 = q.subtraction(ms.su->avatarData[stencilIndex - 1].b9);	break;
+					default:
+						break;
+					}
+					updateTrajectoryArray(stencilIndex - 1);
+				}
+			}
+
+			if (ImGui::Button("y +"))
+			{
+				quaternion q;
+				if (stencilIndex > 0)
+				{
+					q = quaternion(0, magnitude, 0, 0);
+
+					switch (sphereID)
+					{
+					case 0: ms.su->avatarData[stencilIndex - 1].b0 = q.addition(ms.su->avatarData[stencilIndex - 1].b0);	break;
+					case 1: ms.su->avatarData[stencilIndex - 1].b1 = q.addition(ms.su->avatarData[stencilIndex - 1].b1);	break;
+					case 2: ms.su->avatarData[stencilIndex - 1].b2 = q.addition(ms.su->avatarData[stencilIndex - 1].b2);	break;
+					case 3: ms.su->avatarData[stencilIndex - 1].b3 = q.addition(ms.su->avatarData[stencilIndex - 1].b3);	break;
+					case 4: ms.su->avatarData[stencilIndex - 1].b4 = q.addition(ms.su->avatarData[stencilIndex - 1].b4);	break;
+					case 5: ms.su->avatarData[stencilIndex - 1].b5 = q.addition(ms.su->avatarData[stencilIndex - 1].b5);	break;
+					case 6: ms.su->avatarData[stencilIndex - 1].b6 = q.addition(ms.su->avatarData[stencilIndex - 1].b6);	break;
+					case 7: ms.su->avatarData[stencilIndex - 1].b7 = q.addition(ms.su->avatarData[stencilIndex - 1].b7);	break;
+					case 8: ms.su->avatarData[stencilIndex - 1].b8 = q.addition(ms.su->avatarData[stencilIndex - 1].b8);	break;
+					case 9: ms.su->avatarData[stencilIndex - 1].b9 = q.addition(ms.su->avatarData[stencilIndex - 1].b9);	break;
+					default:
+						break;
+					}
+					updateTrajectoryArray(stencilIndex - 1);
+				}
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("y -"))
+			{
+				quaternion q;
+				if (stencilIndex > 0)
+				{
+					q = quaternion(0, magnitude, 0, 0);
+
+					switch (sphereID)
+					{
+					case 0: ms.su->avatarData[stencilIndex - 1].b0 = q.subtraction(ms.su->avatarData[stencilIndex - 1].b0);	break;
+					case 1: ms.su->avatarData[stencilIndex - 1].b1 = q.subtraction(ms.su->avatarData[stencilIndex - 1].b1);	break;
+					case 2: ms.su->avatarData[stencilIndex - 1].b2 = q.subtraction(ms.su->avatarData[stencilIndex - 1].b2);	break;
+					case 3: ms.su->avatarData[stencilIndex - 1].b3 = q.subtraction(ms.su->avatarData[stencilIndex - 1].b3);	break;
+					case 4: ms.su->avatarData[stencilIndex - 1].b4 = q.subtraction(ms.su->avatarData[stencilIndex - 1].b4);	break;
+					case 5: ms.su->avatarData[stencilIndex - 1].b5 = q.subtraction(ms.su->avatarData[stencilIndex - 1].b5);	break;
+					case 6: ms.su->avatarData[stencilIndex - 1].b6 = q.subtraction(ms.su->avatarData[stencilIndex - 1].b6);	break;
+					case 7: ms.su->avatarData[stencilIndex - 1].b7 = q.subtraction(ms.su->avatarData[stencilIndex - 1].b7);	break;
+					case 8: ms.su->avatarData[stencilIndex - 1].b8 = q.subtraction(ms.su->avatarData[stencilIndex - 1].b8);	break;
+					case 9: ms.su->avatarData[stencilIndex - 1].b9 = q.subtraction(ms.su->avatarData[stencilIndex - 1].b9);	break;
+					default:
+						break;
+					}
+					updateTrajectoryArray(stencilIndex - 1);
+				}
+			}
+
+			if (ImGui::Button("z +"))
+			{
+				quaternion q;
+				if (stencilIndex > 0)
+				{
+					q = quaternion(0, 0, magnitude, 0);
+
+					switch (sphereID)
+					{
+					case 0: ms.su->avatarData[stencilIndex - 1].b0 = q.addition(ms.su->avatarData[stencilIndex - 1].b0);	break;
+					case 1: ms.su->avatarData[stencilIndex - 1].b1 = q.addition(ms.su->avatarData[stencilIndex - 1].b1);	break;
+					case 2: ms.su->avatarData[stencilIndex - 1].b2 = q.addition(ms.su->avatarData[stencilIndex - 1].b2);	break;
+					case 3: ms.su->avatarData[stencilIndex - 1].b3 = q.addition(ms.su->avatarData[stencilIndex - 1].b3);	break;
+					case 4: ms.su->avatarData[stencilIndex - 1].b4 = q.addition(ms.su->avatarData[stencilIndex - 1].b4);	break;
+					case 5: ms.su->avatarData[stencilIndex - 1].b5 = q.addition(ms.su->avatarData[stencilIndex - 1].b5);	break;
+					case 6: ms.su->avatarData[stencilIndex - 1].b6 = q.addition(ms.su->avatarData[stencilIndex - 1].b6);	break;
+					case 7: ms.su->avatarData[stencilIndex - 1].b7 = q.addition(ms.su->avatarData[stencilIndex - 1].b7);	break;
+					case 8: ms.su->avatarData[stencilIndex - 1].b8 = q.addition(ms.su->avatarData[stencilIndex - 1].b8);	break;
+					case 9: ms.su->avatarData[stencilIndex - 1].b9 = q.addition(ms.su->avatarData[stencilIndex - 1].b9);	break;
+					default:
+						break;
+					}
+					updateTrajectoryArray(stencilIndex - 1);
+				}
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("z -"))
+			{
+				quaternion q;
+				if (stencilIndex > 0)
+				{
+					q = quaternion(0, 0, magnitude, 0);
+
+					switch (sphereID)
+					{
+					case 0: ms.su->avatarData[stencilIndex - 1].b0 = q.subtraction(ms.su->avatarData[stencilIndex - 1].b0);	break;
+					case 1: ms.su->avatarData[stencilIndex - 1].b1 = q.subtraction(ms.su->avatarData[stencilIndex - 1].b1);	break;
+					case 2: ms.su->avatarData[stencilIndex - 1].b2 = q.subtraction(ms.su->avatarData[stencilIndex - 1].b2);	break;
+					case 3: ms.su->avatarData[stencilIndex - 1].b3 = q.subtraction(ms.su->avatarData[stencilIndex - 1].b3);	break;
+					case 4: ms.su->avatarData[stencilIndex - 1].b4 = q.subtraction(ms.su->avatarData[stencilIndex - 1].b4);	break;
+					case 5: ms.su->avatarData[stencilIndex - 1].b5 = q.subtraction(ms.su->avatarData[stencilIndex - 1].b5);	break;
+					case 6: ms.su->avatarData[stencilIndex - 1].b6 = q.subtraction(ms.su->avatarData[stencilIndex - 1].b6);	break;
+					case 7: ms.su->avatarData[stencilIndex - 1].b7 = q.subtraction(ms.su->avatarData[stencilIndex - 1].b7);	break;
+					case 8: ms.su->avatarData[stencilIndex - 1].b8 = q.subtraction(ms.su->avatarData[stencilIndex - 1].b8);	break;
+					case 9: ms.su->avatarData[stencilIndex - 1].b9 = q.subtraction(ms.su->avatarData[stencilIndex - 1].b9);	break;
+					default:
+						break;
+					}
+					updateTrajectoryArray(stencilIndex - 1);
+				}
+			}
+
+			// Save
+			if (ImGui::Button("Save"))
+			{
+				time_t curr_time;
+				curr_time = time(NULL);
+				tm* tm_local = localtime(&curr_time);
+
+				ofstream avatarDataFile;
+
+				char fileName[1024];
+
+				sprintf_s(fileName, ".\\SkeletonData\\saveFile.txt", 0, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
+				avatarDataFile.open(fileName);
+
+				avatarDataFile << "FULLBODY\t" << 1 << "\n" << "Frames:" << "\t" << trajCount << "\n";
+
+				for (int tCount = 0; tCount < trajCount; tCount++)
+				{
+					//cout << tCount << " : " << ms.su->avatarData[tCount].b0.mData[3] << ", " << ms.su->avatarData[tCount].b0.mData[0] << ", " << ms.su->avatarData[tCount].b0.mData[1] << ", " << ms.su->avatarData[tCount].b0.mData[2] << endl;
+
+					avatarDataFile
+						<< ms.su->avatarData[tCount].b0.mData[3] << '\t' << ms.su->avatarData[tCount].b0.mData[0] << '\t' << ms.su->avatarData[tCount].b0.mData[1] << '\t' << ms.su->avatarData[tCount].b0.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b1.mData[3] << '\t' << ms.su->avatarData[tCount].b1.mData[0] << '\t' << ms.su->avatarData[tCount].b1.mData[1] << '\t' << ms.su->avatarData[tCount].b1.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b2.mData[3] << '\t' << ms.su->avatarData[tCount].b2.mData[0] << '\t' << ms.su->avatarData[tCount].b2.mData[1] << '\t' << ms.su->avatarData[tCount].b2.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b3.mData[3] << '\t' << ms.su->avatarData[tCount].b3.mData[0] << '\t' << ms.su->avatarData[tCount].b3.mData[1] << '\t' << ms.su->avatarData[tCount].b3.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b4.mData[3] << '\t' << ms.su->avatarData[tCount].b4.mData[0] << '\t' << ms.su->avatarData[tCount].b4.mData[1] << '\t' << ms.su->avatarData[tCount].b4.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b5.mData[3] << '\t' << ms.su->avatarData[tCount].b5.mData[0] << '\t' << ms.su->avatarData[tCount].b5.mData[1] << '\t' << ms.su->avatarData[tCount].b5.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b6.mData[3] << '\t' << ms.su->avatarData[tCount].b6.mData[0] << '\t' << ms.su->avatarData[tCount].b6.mData[1] << '\t' << ms.su->avatarData[tCount].b6.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b7.mData[3] << '\t' << ms.su->avatarData[tCount].b7.mData[0] << '\t' << ms.su->avatarData[tCount].b7.mData[1] << '\t' << ms.su->avatarData[tCount].b7.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b8.mData[3] << '\t' << ms.su->avatarData[tCount].b8.mData[0] << '\t' << ms.su->avatarData[tCount].b8.mData[1] << '\t' << ms.su->avatarData[tCount].b8.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b9.mData[3] << '\t' << ms.su->avatarData[tCount].b9.mData[0] << '\t' << ms.su->avatarData[tCount].b9.mData[1] << '\t' << ms.su->avatarData[tCount].b9.mData[2] << "\n";
+				}
+
+				avatarDataFile.close();
+			}
+
+			// Reset
+			if (ImGui::Button("Reset"))
+			{
+
+			}
+
+			// Undo
+			if (ImGui::Button("Undo"))
+			{
+
+			}
+			ImGui::EndTabItem();
 		}
+
+		ImGui::EndTabBar();
+	}
+	ImGui::End();
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////// Speed Editing Mode /////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	int window_width = glutGet(GLUT_WINDOW_WIDTH);
+	int window_height = glutGet(GLUT_WINDOW_HEIGHT);
+
+	ImVec2 new_window_pos = ImVec2(0, window_height - 200);  // Y position at the bottom, height
+	ImVec2 new_window_size = ImVec2(window_width, 200);  // Width same as the window width, height
+	ImGui::SetNextWindowPos(new_window_pos);
+	ImGui::SetNextWindowSize(new_window_size);
+
+	ImGui::Begin("New Simple Window", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+
+	ImVec2 plot_size = ImVec2(750, 150);
+
+	// x축이 데이터에 따라 변할 수 있도록 유연하게 설정
+	int num_frames = 100;  // 데이터에 따라 동적으로 설정 (예: 100 프레임)
+	float time_per_frame = 1.0f;  // 각 프레임당 시간 간격
+
+	std::vector<float> x_data(num_frames);
+	std::vector<float> y_data(num_frames);
+
+	// 데이터 초기화 (기본적으로 등속 운동)
+	for (int i = 0; i < num_frames; i++) {
+		x_data[i] = i * time_per_frame;  // x축은 프레임에 따라 변동
+		y_data[i] = 1.0f;  // 기본값: 등속 운동, 각속도 1
 	}
 
+	if (ImPlot::BeginPlot("Angular Velocity Graph", plot_size))
+	{
+
+		// 현재 마우스 위치에 수직선을 흰색으로 표시
+		if (ImPlot::IsPlotHovered())
+		{
+			ImPlotPoint mouse_pos = ImPlot::GetPlotMousePos();  // 현재 마우스 위치 받아오기
+			float line_data[2] = { mouse_pos.x, mouse_pos.x };  // 마우스 위치의 X 좌표
+			float y_limits[2] = { -1.0f, 1.0f };  // 그래프의 Y축 범위
+
+			ImPlot::PushStyleColor(ImPlotCol_Line, IM_COL32(255, 255, 255, 255)); // 흰색
+			ImPlot::PlotLine("Mouse Line", line_data, y_limits, 2);
+			ImPlot::PopStyleColor();
+
+			// 왼쪽 클릭 감지
+			if (ImGui::IsMouseClicked(0))
+			{
+				if (!selecting_range)
+				{
+					// 첫 번째 클릭: 구간 시작 설정
+					range_start = mouse_pos.x;
+					selecting_range = true;
+					is_selected = false;  // 선택 완료 전까지 false
+				}
+				else
+				{
+					// 두 번째 클릭: 구간 끝 설정
+					range_end = mouse_pos.x;
+					selecting_range = false;
+					is_selected = true;  // 구간 선택 완료
+				}
+			}
+		}
+
+		// 선택된 구간 표시
+		if (is_selected) {
+			float line_data_start[2] = { range_start, range_start };
+			float line_data_end[2] = { range_end, range_end };
+			float y_limits[2] = { -1.0f, 1.0f };
+
+			// 시작 지점과 끝 지점 표시
+			ImPlot::PlotLine("Start", line_data_start, y_limits, 2);
+			ImPlot::PlotLine("End", line_data_end, y_limits, 2);
+		}
+
+		// 구간 내 데이터 수정 버튼
+		ImGui::SameLine();  // 같은 줄에 버튼을 배치
+		ImGui::BeginGroup();  // 버튼을 그룹으로 묶어서 정렬
+		{
+			bool updated = false;  // 데이터를 수정했는지 여부를 추적
+
+			if (ImGui::Button("Increase"))
+			{
+				for (int i = 0; i < num_frames; i++)
+				{
+					if (x_data[i] >= range_start && x_data[i] <= range_end)
+					{
+						y_data[i] = y_data[i] + 0.25f;  // 선택된 구간의 값 증가
+						std::cout << "Increased value at frame " << i << ": " << y_data[i] << std::endl;  // 값 출력
+						updated = true;
+					}
+				}
+			}
+
+			if (ImGui::Button("Decrease"))
+			{
+				for (int i = 0; i < num_frames; i++)
+				{
+					if (x_data[i] >= range_start && x_data[i] <= range_end)
+					{
+						y_data[i] = y_data[i] - 0.25f;  // 선택된 구간의 값 감소
+						std::cout << "Decreased value at frame " << i << ": " << y_data[i] << std::endl;  // 값 출력
+						updated = true;
+					}
+				}
+			}
+
+			// 데이터가 업데이트되면 그래프를 즉시 다시 그리기
+			if (updated)
+			{
+				ImPlot::SetNextAxesLimits(0, num_frames * time_per_frame, -1.0f, 2.0f);  // X축과 Y축 범위 업데이트
+			}
+		}
+		ImGui::EndGroup();  // 버튼 그룹 끝
+
+		// 그래프에서 x축은 frame, y축은 angular velocity
+		ImPlot::PlotLine("Angular Velocity", x_data.data(), y_data.data(), num_frames);
+
+		ImPlot::EndPlot();
+	}
+
+	ImGui::End();
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	glutSwapBuffers();
@@ -2216,6 +2829,7 @@ int MotionSphere::sphereMainLoop(MotionSphere newms, char* windowName)
 	ImGui_ImplGLUT_Init();
 	ImGui_ImplGLUT_InstallFuncs();
 	ImGui_ImplOpenGL3_Init();
+	ImPlot::CreateContext();
 
 	// create a manu option
 	int boneSelect = glutCreateMenu(menu);
@@ -2255,6 +2869,7 @@ int MotionSphere::sphereMainLoop(MotionSphere newms, char* windowName)
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGLUT_Shutdown();
 	ImGui::DestroyContext();
+	ImPlot::DestroyContext();
 
 	return 0;
 }
