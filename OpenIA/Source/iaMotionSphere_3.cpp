@@ -588,7 +588,7 @@ Avatar getFirstInverse(int index)
 		result.b8 = ms.su->avatarData[index].b8.mutiplication(ms.su->avatarData[1].b8.Inverse());
 		result.b9 = ms.su->avatarData[index].b9.mutiplication(ms.su->avatarData[1].b9.Inverse());
 	}
-
+//COMPOSITION ERROR
 	else if (realtime == true) {
 
 		Avatar getSfq = AcquireSFQ2.getSFQ();
