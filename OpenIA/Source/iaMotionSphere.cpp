@@ -1856,6 +1856,16 @@ void sphereIdle()
 
 void SpecialkeyBoardEvent(int key, int x, int y)
 {
+	ImGuiIO& io = ImGui::GetIO();
+
+	if (io.WantCaptureKeyboard)
+	{
+		//io.KeysDown[key] = true;
+
+		//glutPostRedisplay();
+		return;
+	}
+
 	quaternion q;
 	if (stencilIndex > 0)
 	{
@@ -1894,17 +1904,51 @@ void SpecialkeyBoardEvent(int key, int x, int y)
 //파일불러오기
 void keyBoardEvent(unsigned char key, int x, int y)
 {
+	ImGuiIO& io = ImGui::GetIO();
+
+	if (io.WantCaptureKeyboard)
+	{
+		//io.KeysDown[key] = true;
+
+		//glutPostRedisplay();
+		return;
+	}
+
+	//ImGuiIO& io = ImGui::GetIO();
+	//if (io.WantCaptureMouse) {
+	//	if (state == GLUT_DOWN) {
+	//		io.MouseDown[button] = true;
+	//	}
+	//	else if (state == GLUT_UP) {
+	//		io.MouseDown[button] = false;
+	//	}
+	//	io.MousePos = ImVec2((float)x, (float)y);
+
+	//	glutPostRedisplay();
+	//	return;
+	//}
+
 	if (key == '1') //Key-1
 	{
 		realtime = false;
-		//startFresh("D:\\PoseTrack19\\src\\out\\build\\SkeletonData\\FB-Raw-Data-000-114162.txt");
-		startFresh("D:\\PoseTrack19\\src\\out\\build\\SkeletonData\\20240921\\leftarm_adjusted.txt");
-		//startFresh("D:\\PoseTrack19\\src\\out\\build\\SkeletonData\\20240921\\leftarm.txt");
+		startFresh("D:\\PoseTrack19\\src\\out\\build\\SkeletonData\\2024-10-04\\FB-Raw-Data-000-122933.txt");
 	}
 
-	if (key == '2') //Key-1
+	if (key == '2') //Key-2
 	{
 		realtime = true;
+	}
+
+	if (key == '3') //Key-3
+	{
+		realtime = false;
+		startFresh("D:\\PoseTrack19\\src\\out\\build\\SkeletonData\\saveFile.txt");
+	}
+
+	if (key == '4') //Key-4
+	{
+		realtime = false;
+		startFresh("D:\\PoseTrack19\\src\\out\\build\\SkeletonData\\tempErase.txt");
 	}
 
 	if (key == 'c')
@@ -1922,168 +1966,139 @@ void keyBoardEvent(unsigned char key, int x, int y)
 
 }
 
-/*
-Mouse wheel function is used for zooming in and zooming out the sphere.
-*/
-void mouseWheel(int button, int dir, int x, int y)
+void adjustSpeed()
 {
-	ImGuiIO& io = ImGui::GetIO();
-	if (io.WantCaptureMouse) {
-		return;
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////// Speed Editing Mode /////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	int window_width = glutGet(GLUT_WINDOW_WIDTH);
+	int window_height = glutGet(GLUT_WINDOW_HEIGHT);
+
+	ImVec2 new_window_pos = ImVec2(0, window_height - 200);  // Y position at the bottom, height
+	ImVec2 new_window_size = ImVec2(window_width, 200);  // Width same as the window width, height
+	ImGui::SetNextWindowPos(new_window_pos);
+	ImGui::SetNextWindowSize(new_window_size);
+
+	ImGui::Begin("New Simple Window", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+
+	ImVec2 plot_size = ImVec2(750, 150);
+
+	// x축이 데이터에 따라 변할 수 있도록 유연하게 설정
+	int num_frames = 100;  // 데이터에 따라 동적으로 설정 (예: 100 프레임)
+	float time_per_frame = 1.0f;  // 각 프레임당 시간 간격
+
+	std::vector<float> x_data(num_frames);
+	std::vector<float> y_data(num_frames);
+
+	// 데이터 초기화 (기본적으로 등속 운동)
+	for (int i = 0; i < num_frames; i++) {
+		x_data[i] = i * time_per_frame;  // x축은 프레임에 따라 변동
+		y_data[i] = 1.0f;  // 기본값: 등속 운동, 각속도 1
 	}
 
-	if (stencilIndex < 1)
-		toggleEdit = false;
-	else
-		toggleEdit = true;
-	if (toggleEdit)
+	if (ImPlot::BeginPlot("Angular Velocity Graph", plot_size))
 	{
-		quaternion q;
 
-		if (dir > 0)
-			q = quaternion(0, 0.0087155743, 5.33894E-18, 0.999962);
-		else
-			q = quaternion(0, -0.0087155743, 5.33894E-18, 0.999962);
+		// 현재 마우스 위치에 수직선을 흰색으로 표시
+		if (ImPlot::IsPlotHovered())
+		{
+			ImPlotPoint mouse_pos = ImPlot::GetPlotMousePos();  // 현재 마우스 위치 받아오기
+			float line_data[2] = { mouse_pos.x, mouse_pos.x };  // 마우스 위치의 X 좌표
+			float y_limits[2] = { -1.0f, 1.0f };  // 그래프의 Y축 범위
 
-		switch (sphereID)
-		{
-		case 0: ms.su->avatarData[stencilIndex - 1].b0 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b0);	break;
-		case 1: ms.su->avatarData[stencilIndex - 1].b1 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b1);	break;
-		case 2: ms.su->avatarData[stencilIndex - 1].b2 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b2);	break;
-		case 3: ms.su->avatarData[stencilIndex - 1].b3 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b3);	break;
-		case 4: ms.su->avatarData[stencilIndex - 1].b4 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b4);	break;
-		case 5: ms.su->avatarData[stencilIndex - 1].b5 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b5);	break;
-		case 6: ms.su->avatarData[stencilIndex - 1].b6 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b6);	break;
-		case 7: ms.su->avatarData[stencilIndex - 1].b7 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b7);	break;
-		case 8: ms.su->avatarData[stencilIndex - 1].b8 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b8);	break;
-		case 9: ms.su->avatarData[stencilIndex - 1].b9 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b9);	break;
-		default:
-			break;
-		}
-		updateTrajectoryArray(stencilIndex - 1);
-	}
-	if (rotEnable1 && !toggleEdit)
-	{
-		if (dir > 0)
-		{
-			zval1 = zval1 - 0.1;
-		}
-		else
-		{
-			zval1 = zval1 + 0.1;
-		}
-		pointTranslateX1 = zval1 * (cos(xrot * PI / 180) * sin(yrot * PI / 180));
-		pointTranslateY1 = zval1 * (sin(xrot * PI / 180));
-		pointTranslateZ1 = zval1 * (cos(xrot * PI / 180) * cos(yrot * PI / 180));
-	}
-	else if (rotEnable2 && !toggleEdit)
-	{
-		if (dir > 0)
-		{
-			zval2 = zval2 - 0.1;
-		}
-		else
-		{
-			zval2 = zval2 + 0.1;
-		}
-		pointTranslateX2 = zval2 * (cos(xrot * PI / 180) * sin(yrot * PI / 180));
-		pointTranslateY2 = zval2 * (sin(xrot * PI / 180));
-		pointTranslateZ2 = zval2 * (cos(xrot * PI / 180) * cos(yrot * PI / 180));
-	}
-	else if (rotEnable3 && !toggleEdit)
-	{
-		if (dir > 0)
-		{
-			zval3 = zval3 - 0.1;
-		}
-		else
-		{
-			zval3 = zval3 + 0.1;
-		}
-		pointTranslateX3 = zval3 * (cos(xrot * PI / 180) * sin(yrot * PI / 180));
-		pointTranslateY3 = zval3 * (sin(xrot * PI / 180));
-		pointTranslateZ3 = zval3 * (cos(xrot * PI / 180) * cos(yrot * PI / 180));
-	}
-	else if (rotEnable4 && !toggleEdit)
-	{
-		if (dir > 0)
-		{
-			zval4 = zval4 - 0.1;
-		}
-		else
-		{
-			zval4 = zval4 + 0.1;
-		}
-		pointTranslateX4 = zval4 * (cos(xrot * PI / 180) * sin(yrot * PI / 180));
-		pointTranslateY4 = zval4 * (sin(xrot * PI / 180));
-		pointTranslateZ4 = zval4 * (cos(xrot * PI / 180) * cos(yrot * PI / 180));
-	}
-	else
-	{
-		if (!toggleEdit) {
-			if (dir > 0)
+			ImPlot::PushStyleColor(ImPlotCol_Line, IM_COL32(255, 255, 255, 255)); // 흰색
+			ImPlot::PlotLine("Mouse Line", line_data, y_limits, 2);
+			ImPlot::PopStyleColor();
+
+			// 왼쪽 클릭 감지
+			if (ImGui::IsMouseClicked(0))
 			{
-				zval = zval - 0.1;
+				if (!selecting_range)
+				{
+					// 첫 번째 클릭: 구간 시작 설정
+					range_start = mouse_pos.x;
+					selecting_range = true;
+					is_selected = false;  // 선택 완료 전까지 false
+				}
+				else
+				{
+					// 두 번째 클릭: 구간 끝 설정
+					range_end = mouse_pos.x;
+					selecting_range = false;
+					is_selected = true;  // 구간 선택 완료
+				}
 			}
-			else
-			{
-				zval = zval + 0.1;
-			}
-			pointTranslateX = zval * (cos(xrot * PI / 180) * sin(yrot * PI / 180));
-			pointTranslateY = zval * (sin(xrot * PI / 180));
-			pointTranslateZ = zval * (cos(xrot * PI / 180) * cos(yrot * PI / 180));
 		}
+
+		// 선택된 구간 표시
+		if (is_selected) {
+			float line_data_start[2] = { range_start, range_start };
+			float line_data_end[2] = { range_end, range_end };
+			float y_limits[2] = { -1.0f, 1.0f };
+
+			// 시작 지점과 끝 지점 표시
+			ImPlot::PlotLine("Start", line_data_start, y_limits, 2);
+			ImPlot::PlotLine("End", line_data_end, y_limits, 2);
+		}
+
+		// 구간 내 데이터 수정 버튼
+		ImGui::SameLine();  // 같은 줄에 버튼을 배치
+		ImGui::BeginGroup();  // 버튼을 그룹으로 묶어서 정렬
+		{
+			bool updated = false;  // 데이터를 수정했는지 여부를 추적
+
+			if (ImGui::Button("Increase"))
+			{
+				for (int i = 0; i < num_frames; i++)
+				{
+					if (x_data[i] >= range_start && x_data[i] <= range_end)
+					{
+						y_data[i] = y_data[i] + 0.25f;  // 선택된 구간의 값 증가
+						std::cout << "Increased value at frame " << i << ": " << y_data[i] << std::endl;  // 값 출력
+						updated = true;
+					}
+				}
+			}
+
+			if (ImGui::Button("Decrease"))
+			{
+				for (int i = 0; i < num_frames; i++)
+				{
+					if (x_data[i] >= range_start && x_data[i] <= range_end)
+					{
+						y_data[i] = y_data[i] - 0.25f;  // 선택된 구간의 값 감소
+						std::cout << "Decreased value at frame " << i << ": " << y_data[i] << std::endl;  // 값 출력
+						updated = true;
+					}
+				}
+			}
+
+			// 데이터가 업데이트되면 그래프를 즉시 다시 그리기
+			if (updated)
+			{
+				ImPlot::SetNextAxesLimits(0, num_frames * time_per_frame, -1.0f, 2.0f);  // X축과 Y축 범위 업데이트
+			}
+		}
+		ImGui::EndGroup();  // 버튼 그룹 끝
+
+		// 그래프에서 x축은 frame, y축은 angular velocity
+		ImPlot::PlotLine("Angular Velocity", x_data.data(), y_data.data(), num_frames);
+
+		ImPlot::EndPlot();
 	}
 
-	glutPostRedisplay();
+	ImGui::End();
 }
 
-/* Callback: runs in an infinte glut loop*/
-void sphereDisplay(void)
+void adjustPoint()
 {
-	InitializeLight();
-	glClearDepth(1.0);
-	glClearStencil(0);
-	glClearColor(0.9, 0.9, 0.9, 0.0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-	glEnable(GL_POLYGON_SMOOTH);
-	glEnable(GL_STENCIL_TEST);
-	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-	glStencilFunc(GL_ALWAYS, -1, -1);
-	glDisable(GL_TEXTURE_2D);
-	glEnable(GL_TEXTURE_2D);
-	if (sphereID <= 13)
-	{
-		drawTrajectory(ms.minWidth, ms.minHeight, ms.maxWidth, ms.maxHeight, true, pointTranslateX, pointTranslateY, pointTranslateZ, zval, 0);
-	}
-	if (sphereID > 14 && sphereID <= 15)
-	{
-		drawTrajectory(ms.minWidth, ms.maxHeight / 4, ms.maxWidth / 2, ms.maxHeight / 2, rotEnable1, pointTranslateX1, pointTranslateY1, pointTranslateZ1, zval1, 1);
-		drawTrajectory(ms.maxWidth / 2, ms.maxHeight / 4, ms.maxWidth / 2, ms.maxHeight / 2, rotEnable2, pointTranslateX2, pointTranslateY2, pointTranslateZ2, zval2, 2);
-	}
-
-	if (sphereID == 14)
-	{
-		drawTrajectory(ms.minWidth, ms.maxHeight / 2, ms.maxWidth / 2, ms.maxHeight / 2, rotEnable1, pointTranslateX1, pointTranslateY1, pointTranslateZ1, zval1, 1);
-		drawTrajectory(ms.maxWidth / 2, ms.maxHeight / 2, ms.maxWidth / 2, ms.maxHeight / 2, rotEnable2, pointTranslateX2, pointTranslateY2, pointTranslateZ2, zval2, 2);
-		drawTrajectory(ms.minWidth, ms.minHeight, ms.maxWidth / 2, ms.maxHeight / 2, rotEnable3, pointTranslateX3, pointTranslateY3, pointTranslateZ3, zval3, 3);
-		drawTrajectory(ms.maxWidth / 2, ms.minHeight, ms.maxWidth / 2, ms.maxHeight / 2, rotEnable4, pointTranslateX4, pointTranslateY4, pointTranslateZ4, zval4, 4);
-	}
-
-	if (sphereID == 16)
-	{
-		drawTrajectory(ms.minWidth, ms.maxHeight / 2, ms.maxWidth / 2, ms.maxHeight / 2, rotEnable1, pointTranslateX1, pointTranslateY1, pointTranslateZ1, zval1, 1);
-		drawTrajectory(ms.maxWidth / 2, ms.maxHeight / 2, ms.maxWidth / 2, ms.maxHeight / 2, rotEnable2, pointTranslateX2, pointTranslateY2, pointTranslateZ2, zval2, 2);
-		drawTrajectory(ms.minWidth, ms.minHeight, ms.maxWidth / 2, ms.maxHeight / 2, rotEnable3, pointTranslateX3, pointTranslateY3, pointTranslateZ3, zval3, 3);
-		drawTrajectory(ms.maxWidth / 2, ms.minHeight, ms.maxWidth / 2, ms.maxHeight / 2, rotEnable4, pointTranslateX4, pointTranslateY4, pointTranslateZ4, zval4, 4);
-	}
-
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////////////////// Motion Editing Mode /////////////////////////////////////////////
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGLUT_NewFrame();
-	ImGuiIO& io = ImGui::GetIO(); // ImGui 입력/출력 객체를 가져옵니다.
+	ImGuiIO& io = ImGui::GetIO(); // ImGui 입력/출력 객체
 	//printf("WantCaptureMouse: %d, WantCaptureKeyboard: %d\n", io.WantCaptureMouse, io.WantCaptureKeyboard);
 
 	ImGui::NewFrame();
@@ -2092,6 +2107,7 @@ void sphereDisplay(void)
 
 	ImGui::Text("Current Joint: %d", sphereID);
 	ImGui::Text("Current Point: %d", stencilIndex);
+
 	ImGui::SameLine();
 	if (ImGui::Button("Prev") && (stencilIndex > 0))
 	{
@@ -2102,6 +2118,9 @@ void sphereDisplay(void)
 	{
 		stencilIndex += 1;
 	}
+
+	ImGui::Text("Num Point: %d", trajCount);
+
 
 	switch (sphereID)
 	{
@@ -2614,130 +2633,618 @@ void sphereDisplay(void)
 			ImGui::EndTabItem();
 		}
 
+		// Speed
+		if (ImGui::BeginTabItem("Speed"))
+		{
+			// 숫자 입력용 변수 두 개
+			static int start_value = 0;
+			static int end_value = 0;
+
+			// 숫자 입력란 생성 (start_value와 end_value에 값 입력)
+			ImGui::InputInt("Start", &start_value);
+			ImGui::InputInt("End", &end_value);
+
+			// Print 버튼
+			if (ImGui::Button("Print"))
+			{
+				// Print the range from start_value to end_value
+				std::cout << "Printing values from " << start_value << " to " << end_value << ":\n";
+				for (int i = start_value; i <= end_value; ++i)
+				{
+					switch (sphereID)
+					{
+					case 0: cout << ms.su->avatarData[i - 1].b0 << endl; break;
+					case 1: cout << ms.su->avatarData[i - 1].b1 << endl; break;
+					case 2: cout << ms.su->avatarData[i - 1].b2 << endl; break;
+					case 3: cout << ms.su->avatarData[i - 1].b3 << endl; break;
+					case 4: cout << ms.su->avatarData[i - 1].b4 << endl; break;
+					case 5: cout << ms.su->avatarData[i - 1].b5 << endl; break;
+					case 6: cout << ms.su->avatarData[i - 1].b6 << endl; break;
+					case 7: cout << ms.su->avatarData[i - 1].b7 << endl; break;
+					case 8: cout << ms.su->avatarData[i - 1].b8 << endl; break;
+					case 9: cout << ms.su->avatarData[i - 1].b9 << endl; break;
+					default:
+						break;
+					}
+				}
+			}
+
+			if (ImGui::Button("Left"))
+			{
+				quaternion q;
+				q = quaternion(0, 5.33894E-18, -0.0087155743, 0.999962);
+
+				for (int i = start_value; i <= end_value; ++i)
+				{
+					switch (sphereID)
+					{
+					case 0: ms.su->avatarData[i].b0 = q.mutiplication(ms.su->avatarData[i].b0); break;
+					case 1: ms.su->avatarData[i].b1 = q.mutiplication(ms.su->avatarData[i].b1); break;
+					case 2: ms.su->avatarData[i].b2 = q.mutiplication(ms.su->avatarData[i].b2); break;
+					case 3: ms.su->avatarData[i].b3 = q.mutiplication(ms.su->avatarData[i].b3); break;
+					case 4: ms.su->avatarData[i].b4 = q.mutiplication(ms.su->avatarData[i].b4); break;
+					case 5: ms.su->avatarData[i].b5 = q.mutiplication(ms.su->avatarData[i].b5); break;
+					case 6: ms.su->avatarData[i].b6 = q.mutiplication(ms.su->avatarData[i].b6); break;
+					case 7: ms.su->avatarData[i].b7 = q.mutiplication(ms.su->avatarData[i].b7); break;
+					case 8: ms.su->avatarData[i].b8 = q.mutiplication(ms.su->avatarData[i].b8); break;
+					case 9: ms.su->avatarData[i].b9 = q.mutiplication(ms.su->avatarData[i].b9); break;
+					default: break;
+					}
+					updateTrajectoryArray(i - 1);
+				}
+			}
+			ImGui::SameLine();
+
+			if (ImGui::Button("Up"))
+			{
+				quaternion q;
+				q = quaternion(-0.0087155743, 0, 5.33894E-18, 0.999962);
+
+				for (int i = start_value; i <= end_value; ++i)
+				{
+					switch (sphereID)
+					{
+					case 0: ms.su->avatarData[i].b0 = q.mutiplication(ms.su->avatarData[i].b0); break;
+					case 1: ms.su->avatarData[i].b1 = q.mutiplication(ms.su->avatarData[i].b1); break;
+					case 2: ms.su->avatarData[i].b2 = q.mutiplication(ms.su->avatarData[i].b2); break;
+					case 3: ms.su->avatarData[i].b3 = q.mutiplication(ms.su->avatarData[i].b3); break;
+					case 4: ms.su->avatarData[i].b4 = q.mutiplication(ms.su->avatarData[i].b4); break;
+					case 5: ms.su->avatarData[i].b5 = q.mutiplication(ms.su->avatarData[i].b5); break;
+					case 6: ms.su->avatarData[i].b6 = q.mutiplication(ms.su->avatarData[i].b6); break;
+					case 7: ms.su->avatarData[i].b7 = q.mutiplication(ms.su->avatarData[i].b7); break;
+					case 8: ms.su->avatarData[i].b8 = q.mutiplication(ms.su->avatarData[i].b8); break;
+					case 9: ms.su->avatarData[i].b9 = q.mutiplication(ms.su->avatarData[i].b9); break;
+					default: break;
+					}
+					updateTrajectoryArray(i - 1);
+				}
+			}
+			ImGui::SameLine();
+
+			if (ImGui::Button("Down"))
+			{
+				quaternion q;
+				q = quaternion(0.0087155743, 0, 5.33894E-18, 0.999962);
+
+				for (int i = start_value; i <= end_value; ++i)
+				{
+					switch (sphereID)
+					{
+					case 0: ms.su->avatarData[i].b0 = q.mutiplication(ms.su->avatarData[i].b0); break;
+					case 1: ms.su->avatarData[i].b1 = q.mutiplication(ms.su->avatarData[i].b1); break;
+					case 2: ms.su->avatarData[i].b2 = q.mutiplication(ms.su->avatarData[i].b2); break;
+					case 3: ms.su->avatarData[i].b3 = q.mutiplication(ms.su->avatarData[i].b3); break;
+					case 4: ms.su->avatarData[i].b4 = q.mutiplication(ms.su->avatarData[i].b4); break;
+					case 5: ms.su->avatarData[i].b5 = q.mutiplication(ms.su->avatarData[i].b5); break;
+					case 6: ms.su->avatarData[i].b6 = q.mutiplication(ms.su->avatarData[i].b6); break;
+					case 7: ms.su->avatarData[i].b7 = q.mutiplication(ms.su->avatarData[i].b7); break;
+					case 8: ms.su->avatarData[i].b8 = q.mutiplication(ms.su->avatarData[i].b8); break;
+					case 9: ms.su->avatarData[i].b9 = q.mutiplication(ms.su->avatarData[i].b9); break;
+					default: break;
+					}
+					updateTrajectoryArray(i - 1);
+				}
+			}
+			ImGui::SameLine();
+
+			if (ImGui::Button("Right"))
+			{
+				quaternion q;
+				q = quaternion(0, 5.33894E-18, 0.0087155743, 0.999962);
+
+				for (int i = start_value; i <= end_value; ++i)
+				{
+					switch (sphereID)
+					{
+					case 0: ms.su->avatarData[i].b0 = q.mutiplication(ms.su->avatarData[i].b0); break;
+					case 1: ms.su->avatarData[i].b1 = q.mutiplication(ms.su->avatarData[i].b1); break;
+					case 2: ms.su->avatarData[i].b2 = q.mutiplication(ms.su->avatarData[i].b2); break;
+					case 3: ms.su->avatarData[i].b3 = q.mutiplication(ms.su->avatarData[i].b3); break;
+					case 4: ms.su->avatarData[i].b4 = q.mutiplication(ms.su->avatarData[i].b4); break;
+					case 5: ms.su->avatarData[i].b5 = q.mutiplication(ms.su->avatarData[i].b5); break;
+					case 6: ms.su->avatarData[i].b6 = q.mutiplication(ms.su->avatarData[i].b6); break;
+					case 7: ms.su->avatarData[i].b7 = q.mutiplication(ms.su->avatarData[i].b7); break;
+					case 8: ms.su->avatarData[i].b8 = q.mutiplication(ms.su->avatarData[i].b8); break;
+					case 9: ms.su->avatarData[i].b9 = q.mutiplication(ms.su->avatarData[i].b9); break;
+					default: break;
+					}
+					updateTrajectoryArray(i - 1);
+				}
+			}
+
+			if (ImGui::Button("Interval Increase (midpoint)"))
+			{
+				// 중간 프레임 계산
+				int middle_index = (start_value + end_value) / 2;
+				float factor = 0.5f;  // 간격을 벌리는 크기를 설정
+
+				quaternion q = quaternion(-0.0087155743, 0, 5.33894E-18, 0.999962);
+
+				for (int i = start_value; i <= end_value; ++i)
+				{
+					float adjustment = factor * abs(i - middle_index);  // 중간 프레임과의 거리만큼 간격을 벌림
+
+				// 중간보다 위쪽 프레임은 위로, 아래쪽 프레임은 아래로 이동
+					if (i < middle_index)
+					{
+						quaternion adjustment_q = quaternion(
+							q.mData[0] - adjustment * -0.0087155743,
+							q.mData[1],
+							q.mData[2] - adjustment * 5.33894E-18,
+							q.mData[3]
+						);
+
+						// 각 sphereID에 맞게 쿼터니언을 적용
+						switch (sphereID)
+						{
+						case 0: ms.su->avatarData[i].b0 = adjustment_q.mutiplication(ms.su->avatarData[i].b0); break;
+						case 1: ms.su->avatarData[i].b1 = adjustment_q.mutiplication(ms.su->avatarData[i].b1); break;
+						case 2: ms.su->avatarData[i].b2 = adjustment_q.mutiplication(ms.su->avatarData[i].b2); break;
+						case 3: ms.su->avatarData[i].b3 = adjustment_q.mutiplication(ms.su->avatarData[i].b3); break;
+						case 4: ms.su->avatarData[i].b4 = adjustment_q.mutiplication(ms.su->avatarData[i].b4); break;
+						case 5: ms.su->avatarData[i].b5 = adjustment_q.mutiplication(ms.su->avatarData[i].b5); break;
+						case 6: ms.su->avatarData[i].b6 = adjustment_q.mutiplication(ms.su->avatarData[i].b6); break;
+						case 7: ms.su->avatarData[i].b7 = adjustment_q.mutiplication(ms.su->avatarData[i].b7); break;
+						case 8: ms.su->avatarData[i].b8 = adjustment_q.mutiplication(ms.su->avatarData[i].b8); break;
+						case 9: ms.su->avatarData[i].b9 = adjustment_q.mutiplication(ms.su->avatarData[i].b9); break;
+						default: break;
+						}
+					}
+					else if (i > middle_index)
+					{
+						quaternion adjustment_q = quaternion(
+							q.mData[0] + adjustment * -0.0087155743,
+							q.mData[1],
+							q.mData[2] + adjustment * 5.33894E-18,
+							q.mData[3]
+						);
+
+						// 각 sphereID에 맞게 쿼터니언을 적용
+						switch (sphereID)
+						{
+						case 0: ms.su->avatarData[i].b0 = adjustment_q.mutiplication(ms.su->avatarData[i].b0); break;
+						case 1: ms.su->avatarData[i].b1 = adjustment_q.mutiplication(ms.su->avatarData[i].b1); break;
+						case 2: ms.su->avatarData[i].b2 = adjustment_q.mutiplication(ms.su->avatarData[i].b2); break;
+						case 3: ms.su->avatarData[i].b3 = adjustment_q.mutiplication(ms.su->avatarData[i].b3); break;
+						case 4: ms.su->avatarData[i].b4 = adjustment_q.mutiplication(ms.su->avatarData[i].b4); break;
+						case 5: ms.su->avatarData[i].b5 = adjustment_q.mutiplication(ms.su->avatarData[i].b5); break;
+						case 6: ms.su->avatarData[i].b6 = adjustment_q.mutiplication(ms.su->avatarData[i].b6); break;
+						case 7: ms.su->avatarData[i].b7 = adjustment_q.mutiplication(ms.su->avatarData[i].b7); break;
+						case 8: ms.su->avatarData[i].b8 = adjustment_q.mutiplication(ms.su->avatarData[i].b8); break;
+						case 9: ms.su->avatarData[i].b9 = adjustment_q.mutiplication(ms.su->avatarData[i].b9); break;
+						default: break;
+						}
+					}
+
+					// 배열 업데이트
+					updateTrajectoryArray(i - 1);
+				}
+			}
+			if (ImGui::Button("Interval Decrease (midpoint)"))
+			{
+				// 중간 프레임 계산
+				int middle_index = (start_value + end_value) / 2;
+				float factor = 0.5f;  // 간격을 벌리는 크기를 설정
+
+				quaternion q = quaternion(-0.0087155743, 0, 5.33894E-18, 0.999962);
+
+				for (int i = start_value; i <= end_value; ++i)
+				{
+					float adjustment = factor * abs(i - middle_index);  // 중간 프레임과의 거리만큼 간격을 벌림
+
+					// 중간보다 위쪽 프레임은 위로, 아래쪽 프레임은 아래로 이동
+					if (i < middle_index)
+					{
+						quaternion adjustment_q = quaternion(
+							q.mData[0] + adjustment * -0.0087155743,
+							q.mData[1],
+							q.mData[2] + adjustment * -5.33894E-18,
+							q.mData[3]
+						);
+
+						// 각 sphereID에 맞게 쿼터니언을 적용
+						switch (sphereID)
+						{
+						case 0: ms.su->avatarData[i].b0 = adjustment_q.mutiplication(ms.su->avatarData[i].b0); break;
+						case 1: ms.su->avatarData[i].b1 = adjustment_q.mutiplication(ms.su->avatarData[i].b1); break;
+						case 2: ms.su->avatarData[i].b2 = adjustment_q.mutiplication(ms.su->avatarData[i].b2); break;
+						case 3: ms.su->avatarData[i].b3 = adjustment_q.mutiplication(ms.su->avatarData[i].b3); break;
+						case 4: ms.su->avatarData[i].b4 = adjustment_q.mutiplication(ms.su->avatarData[i].b4); break;
+						case 5: ms.su->avatarData[i].b5 = adjustment_q.mutiplication(ms.su->avatarData[i].b5); break;
+						case 6: ms.su->avatarData[i].b6 = adjustment_q.mutiplication(ms.su->avatarData[i].b6); break;
+						case 7: ms.su->avatarData[i].b7 = adjustment_q.mutiplication(ms.su->avatarData[i].b7); break;
+						case 8: ms.su->avatarData[i].b8 = adjustment_q.mutiplication(ms.su->avatarData[i].b8); break;
+						case 9: ms.su->avatarData[i].b9 = adjustment_q.mutiplication(ms.su->avatarData[i].b9); break;
+						default: break;
+						}
+					}
+					else if (i > middle_index)
+					{
+						quaternion adjustment_q = quaternion(
+							q.mData[0] - adjustment * -0.0087155743,
+							q.mData[1],
+							q.mData[2] - adjustment * -5.33894E-18,
+							q.mData[3]
+						);
+
+						// 각 sphereID에 맞게 쿼터니언을 적용
+						switch (sphereID)
+						{
+						case 0: ms.su->avatarData[i].b0 = adjustment_q.mutiplication(ms.su->avatarData[i].b0); break;
+						case 1: ms.su->avatarData[i].b1 = adjustment_q.mutiplication(ms.su->avatarData[i].b1); break;
+						case 2: ms.su->avatarData[i].b2 = adjustment_q.mutiplication(ms.su->avatarData[i].b2); break;
+						case 3: ms.su->avatarData[i].b3 = adjustment_q.mutiplication(ms.su->avatarData[i].b3); break;
+						case 4: ms.su->avatarData[i].b4 = adjustment_q.mutiplication(ms.su->avatarData[i].b4); break;
+						case 5: ms.su->avatarData[i].b5 = adjustment_q.mutiplication(ms.su->avatarData[i].b5); break;
+						case 6: ms.su->avatarData[i].b6 = adjustment_q.mutiplication(ms.su->avatarData[i].b6); break;
+						case 7: ms.su->avatarData[i].b7 = adjustment_q.mutiplication(ms.su->avatarData[i].b7); break;
+						case 8: ms.su->avatarData[i].b8 = adjustment_q.mutiplication(ms.su->avatarData[i].b8); break;
+						case 9: ms.su->avatarData[i].b9 = adjustment_q.mutiplication(ms.su->avatarData[i].b9); break;
+						default: break;
+						}
+					}
+
+					// 배열 업데이트
+					updateTrajectoryArray(i - 1);
+				}
+			}
+
+			if (ImGui::Button("Interval Increase (start point)"))
+			{
+				// 시작점을 기준으로
+				float factor = 0.5f;  // 간격을 벌리는 크기를 설정
+
+				quaternion q = quaternion(-0.0087155743, 0, 5.33894E-18, 0.999962);
+
+				for (int i = start_value; i <= end_value; ++i)
+				{
+					// 시작점으로부터의 거리만큼 간격을 벌림
+					float adjustment = factor * (i - start_value);
+
+					// 각 sphereID에 맞게 쿼터니언을 적용
+					quaternion adjustment_q = quaternion(
+						q.mData[0] + adjustment * -0.0087155743,
+						q.mData[1],
+						q.mData[2] + adjustment * 5.33894E-18,
+						q.mData[3]
+					);
+
+					// 각 sphereID에 맞게 쿼터니언을 적용
+					switch (sphereID)
+					{
+					case 0: ms.su->avatarData[i].b0 = adjustment_q.mutiplication(ms.su->avatarData[i].b0); break;
+					case 1: ms.su->avatarData[i].b1 = adjustment_q.mutiplication(ms.su->avatarData[i].b1); break;
+					case 2: ms.su->avatarData[i].b2 = adjustment_q.mutiplication(ms.su->avatarData[i].b2); break;
+					case 3: ms.su->avatarData[i].b3 = adjustment_q.mutiplication(ms.su->avatarData[i].b3); break;
+					case 4: ms.su->avatarData[i].b4 = adjustment_q.mutiplication(ms.su->avatarData[i].b4); break;
+					case 5: ms.su->avatarData[i].b5 = adjustment_q.mutiplication(ms.su->avatarData[i].b5); break;
+					case 6: ms.su->avatarData[i].b6 = adjustment_q.mutiplication(ms.su->avatarData[i].b6); break;
+					case 7: ms.su->avatarData[i].b7 = adjustment_q.mutiplication(ms.su->avatarData[i].b7); break;
+					case 8: ms.su->avatarData[i].b8 = adjustment_q.mutiplication(ms.su->avatarData[i].b8); break;
+					case 9: ms.su->avatarData[i].b9 = adjustment_q.mutiplication(ms.su->avatarData[i].b9); break;
+					default: break;
+					}
+
+					// 배열 업데이트
+					updateTrajectoryArray(i - 1);
+				}
+			}
+			if (ImGui::Button("Interval Decrease (start point)"))
+			{
+				// 시작점을 기준으로
+				float factor = 0.5f;  // 간격을 벌리는 크기를 설정
+
+				quaternion q = quaternion(-0.0087155743, 0, 5.33894E-18, 0.999962);
+
+				for (int i = start_value; i <= end_value; ++i)
+				{
+					// 시작점으로부터의 거리만큼 간격을 벌림
+					float adjustment = factor * (i - start_value);
+
+					// 각 sphereID에 맞게 쿼터니언을 적용
+					quaternion adjustment_q = quaternion(
+						q.mData[0] - adjustment * -0.0087155743,
+						q.mData[1],
+						q.mData[2] - adjustment * 5.33894E-18,
+						q.mData[3]
+					);
+
+					// 각 sphereID에 맞게 쿼터니언을 적용
+					switch (sphereID)
+					{
+					case 0: ms.su->avatarData[i].b0 = adjustment_q.mutiplication(ms.su->avatarData[i].b0); break;
+					case 1: ms.su->avatarData[i].b1 = adjustment_q.mutiplication(ms.su->avatarData[i].b1); break;
+					case 2: ms.su->avatarData[i].b2 = adjustment_q.mutiplication(ms.su->avatarData[i].b2); break;
+					case 3: ms.su->avatarData[i].b3 = adjustment_q.mutiplication(ms.su->avatarData[i].b3); break;
+					case 4: ms.su->avatarData[i].b4 = adjustment_q.mutiplication(ms.su->avatarData[i].b4); break;
+					case 5: ms.su->avatarData[i].b5 = adjustment_q.mutiplication(ms.su->avatarData[i].b5); break;
+					case 6: ms.su->avatarData[i].b6 = adjustment_q.mutiplication(ms.su->avatarData[i].b6); break;
+					case 7: ms.su->avatarData[i].b7 = adjustment_q.mutiplication(ms.su->avatarData[i].b7); break;
+					case 8: ms.su->avatarData[i].b8 = adjustment_q.mutiplication(ms.su->avatarData[i].b8); break;
+					case 9: ms.su->avatarData[i].b9 = adjustment_q.mutiplication(ms.su->avatarData[i].b9); break;
+					default: break;
+					}
+
+					// 배열 업데이트
+					updateTrajectoryArray(i - 1);
+				}
+			}
+
+			// Save
+			if (ImGui::Button("Save"))
+			{
+				time_t curr_time;
+				curr_time = time(NULL);
+				tm* tm_local = localtime(&curr_time);
+
+				ofstream avatarDataFile;
+
+				char fileName[1024];
+
+				sprintf_s(fileName, ".\\SkeletonData\\saveFile.txt", 0, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
+				avatarDataFile.open(fileName);
+
+				avatarDataFile << "FULLBODY\t" << 1 << "\n" << "Frames:" << "\t" << trajCount << "\n";
+
+				for (int tCount = 0; tCount < trajCount; tCount++)
+				{
+					//cout << tCount << " : " << ms.su->avatarData[tCount].b0.mData[3] << ", " << ms.su->avatarData[tCount].b0.mData[0] << ", " << ms.su->avatarData[tCount].b0.mData[1] << ", " << ms.su->avatarData[tCount].b0.mData[2] << endl;
+
+					avatarDataFile
+						<< ms.su->avatarData[tCount].b0.mData[3] << '\t' << ms.su->avatarData[tCount].b0.mData[0] << '\t' << ms.su->avatarData[tCount].b0.mData[1] << '\t' << ms.su->avatarData[tCount].b0.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b1.mData[3] << '\t' << ms.su->avatarData[tCount].b1.mData[0] << '\t' << ms.su->avatarData[tCount].b1.mData[1] << '\t' << ms.su->avatarData[tCount].b1.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b2.mData[3] << '\t' << ms.su->avatarData[tCount].b2.mData[0] << '\t' << ms.su->avatarData[tCount].b2.mData[1] << '\t' << ms.su->avatarData[tCount].b2.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b3.mData[3] << '\t' << ms.su->avatarData[tCount].b3.mData[0] << '\t' << ms.su->avatarData[tCount].b3.mData[1] << '\t' << ms.su->avatarData[tCount].b3.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b4.mData[3] << '\t' << ms.su->avatarData[tCount].b4.mData[0] << '\t' << ms.su->avatarData[tCount].b4.mData[1] << '\t' << ms.su->avatarData[tCount].b4.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b5.mData[3] << '\t' << ms.su->avatarData[tCount].b5.mData[0] << '\t' << ms.su->avatarData[tCount].b5.mData[1] << '\t' << ms.su->avatarData[tCount].b5.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b6.mData[3] << '\t' << ms.su->avatarData[tCount].b6.mData[0] << '\t' << ms.su->avatarData[tCount].b6.mData[1] << '\t' << ms.su->avatarData[tCount].b6.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b7.mData[3] << '\t' << ms.su->avatarData[tCount].b7.mData[0] << '\t' << ms.su->avatarData[tCount].b7.mData[1] << '\t' << ms.su->avatarData[tCount].b7.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b8.mData[3] << '\t' << ms.su->avatarData[tCount].b8.mData[0] << '\t' << ms.su->avatarData[tCount].b8.mData[1] << '\t' << ms.su->avatarData[tCount].b8.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b9.mData[3] << '\t' << ms.su->avatarData[tCount].b9.mData[0] << '\t' << ms.su->avatarData[tCount].b9.mData[1] << '\t' << ms.su->avatarData[tCount].b9.mData[2] << "\n";
+				}
+
+				avatarDataFile.close();
+			}
+
+			if (ImGui::Button("Erase"))
+			{
+				// 1. 현재 모든 배열의 원소를 벡터로
+				std::vector<Avatar> avatarVector(ms.su->avatarData, ms.su->avatarData + trajCount);
+
+				// 2. 현재 선택 중인 frame 삭제
+				if (stencilIndex >= 0 && stencilIndex < avatarVector.size()) {
+					avatarVector.erase(avatarVector.begin() + stencilIndex - 1);
+					--trajCount; // 프레임 개수 감소
+				}
+
+				// 3. 벡터를 새로운 배열로 옮김.
+				for (size_t i = 0; i < avatarVector.size(); ++i) {
+					ms.su->avatarData[i] = avatarVector[i];
+				}
+
+				// 4. saveFile
+				time_t curr_time;
+				curr_time = time(NULL);
+				tm* tm_local = localtime(&curr_time);
+
+				ofstream avatarDataFile;
+
+				char fileName[1024];
+
+				sprintf_s(fileName, ".\\SkeletonData\\tempErase.txt", 0, tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec);
+				avatarDataFile.open(fileName);
+
+				avatarDataFile << "FULLBODY\t" << 1 << "\n" << "Frames:" << "\t" << trajCount << "\n";
+
+				for (int tCount = 0; tCount < trajCount; tCount++)
+				{
+					avatarDataFile
+						<< ms.su->avatarData[tCount].b0.mData[3] << '\t' << ms.su->avatarData[tCount].b0.mData[0] << '\t' << ms.su->avatarData[tCount].b0.mData[1] << '\t' << ms.su->avatarData[tCount].b0.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b1.mData[3] << '\t' << ms.su->avatarData[tCount].b1.mData[0] << '\t' << ms.su->avatarData[tCount].b1.mData[1] << '\t' << ms.su->avatarData[tCount].b1.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b2.mData[3] << '\t' << ms.su->avatarData[tCount].b2.mData[0] << '\t' << ms.su->avatarData[tCount].b2.mData[1] << '\t' << ms.su->avatarData[tCount].b2.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b3.mData[3] << '\t' << ms.su->avatarData[tCount].b3.mData[0] << '\t' << ms.su->avatarData[tCount].b3.mData[1] << '\t' << ms.su->avatarData[tCount].b3.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b4.mData[3] << '\t' << ms.su->avatarData[tCount].b4.mData[0] << '\t' << ms.su->avatarData[tCount].b4.mData[1] << '\t' << ms.su->avatarData[tCount].b4.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b5.mData[3] << '\t' << ms.su->avatarData[tCount].b5.mData[0] << '\t' << ms.su->avatarData[tCount].b5.mData[1] << '\t' << ms.su->avatarData[tCount].b5.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b6.mData[3] << '\t' << ms.su->avatarData[tCount].b6.mData[0] << '\t' << ms.su->avatarData[tCount].b6.mData[1] << '\t' << ms.su->avatarData[tCount].b6.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b7.mData[3] << '\t' << ms.su->avatarData[tCount].b7.mData[0] << '\t' << ms.su->avatarData[tCount].b7.mData[1] << '\t' << ms.su->avatarData[tCount].b7.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b8.mData[3] << '\t' << ms.su->avatarData[tCount].b8.mData[0] << '\t' << ms.su->avatarData[tCount].b8.mData[1] << '\t' << ms.su->avatarData[tCount].b8.mData[2] << "\t"
+						<< ms.su->avatarData[tCount].b9.mData[3] << '\t' << ms.su->avatarData[tCount].b9.mData[0] << '\t' << ms.su->avatarData[tCount].b9.mData[1] << '\t' << ms.su->avatarData[tCount].b9.mData[2] << "\n";
+				}
+
+				avatarDataFile.close();
+
+				// 5. startFresh
+				startFresh("D:\\PoseTrack19\\src\\out\\build\\SkeletonData\\tempErase.txt");
+			}
+
+
+		}
 		ImGui::EndTabBar();
 	}
 	ImGui::End();
+}
 
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	////////////////////////////////////////////// Speed Editing Mode /////////////////////////////////////////////
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	int window_width = glutGet(GLUT_WINDOW_WIDTH);
-	int window_height = glutGet(GLUT_WINDOW_HEIGHT);
-
-	ImVec2 new_window_pos = ImVec2(0, window_height - 200);  // Y position at the bottom, height
-	ImVec2 new_window_size = ImVec2(window_width, 200);  // Width same as the window width, height
-	ImGui::SetNextWindowPos(new_window_pos);
-	ImGui::SetNextWindowSize(new_window_size);
-
-	ImGui::Begin("New Simple Window", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
-
-	ImVec2 plot_size = ImVec2(750, 150);
-
-	// x축이 데이터에 따라 변할 수 있도록 유연하게 설정
-	int num_frames = 100;  // 데이터에 따라 동적으로 설정 (예: 100 프레임)
-	float time_per_frame = 1.0f;  // 각 프레임당 시간 간격
-
-	std::vector<float> x_data(num_frames);
-	std::vector<float> y_data(num_frames);
-
-	// 데이터 초기화 (기본적으로 등속 운동)
-	for (int i = 0; i < num_frames; i++) {
-		x_data[i] = i * time_per_frame;  // x축은 프레임에 따라 변동
-		y_data[i] = 1.0f;  // 기본값: 등속 운동, 각속도 1
+/*
+Mouse wheel function is used for zooming in and zooming out the sphere.
+*/
+void mouseWheel(int button, int dir, int x, int y)
+{
+	ImGuiIO& io = ImGui::GetIO();
+	if (io.WantCaptureMouse) {
+		return;
 	}
 
-	if (ImPlot::BeginPlot("Angular Velocity Graph", plot_size))
+	if (stencilIndex < 1)
+		toggleEdit = false;
+	else
+		toggleEdit = true;
+	if (toggleEdit)
 	{
+		quaternion q;
 
-		// 현재 마우스 위치에 수직선을 흰색으로 표시
-		if (ImPlot::IsPlotHovered())
+		if (dir > 0)
+			q = quaternion(0, 0.0087155743, 5.33894E-18, 0.999962);
+		else
+			q = quaternion(0, -0.0087155743, 5.33894E-18, 0.999962);
+
+		switch (sphereID)
 		{
-			ImPlotPoint mouse_pos = ImPlot::GetPlotMousePos();  // 현재 마우스 위치 받아오기
-			float line_data[2] = { mouse_pos.x, mouse_pos.x };  // 마우스 위치의 X 좌표
-			float y_limits[2] = { -1.0f, 1.0f };  // 그래프의 Y축 범위
-
-			ImPlot::PushStyleColor(ImPlotCol_Line, IM_COL32(255, 255, 255, 255)); // 흰색
-			ImPlot::PlotLine("Mouse Line", line_data, y_limits, 2);
-			ImPlot::PopStyleColor();
-
-			// 왼쪽 클릭 감지
-			if (ImGui::IsMouseClicked(0))
-			{
-				if (!selecting_range)
-				{
-					// 첫 번째 클릭: 구간 시작 설정
-					range_start = mouse_pos.x;
-					selecting_range = true;
-					is_selected = false;  // 선택 완료 전까지 false
-				}
-				else
-				{
-					// 두 번째 클릭: 구간 끝 설정
-					range_end = mouse_pos.x;
-					selecting_range = false;
-					is_selected = true;  // 구간 선택 완료
-				}
-			}
+		case 0: ms.su->avatarData[stencilIndex - 1].b0 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b0);	break;
+		case 1: ms.su->avatarData[stencilIndex - 1].b1 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b1);	break;
+		case 2: ms.su->avatarData[stencilIndex - 1].b2 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b2);	break;
+		case 3: ms.su->avatarData[stencilIndex - 1].b3 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b3);	break;
+		case 4: ms.su->avatarData[stencilIndex - 1].b4 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b4);	break;
+		case 5: ms.su->avatarData[stencilIndex - 1].b5 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b5);	break;
+		case 6: ms.su->avatarData[stencilIndex - 1].b6 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b6);	break;
+		case 7: ms.su->avatarData[stencilIndex - 1].b7 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b7);	break;
+		case 8: ms.su->avatarData[stencilIndex - 1].b8 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b8);	break;
+		case 9: ms.su->avatarData[stencilIndex - 1].b9 = q.mutiplication(ms.su->avatarData[stencilIndex - 1].b9);	break;
+		default:
+			break;
 		}
-
-		// 선택된 구간 표시
-		if (is_selected) {
-			float line_data_start[2] = { range_start, range_start };
-			float line_data_end[2] = { range_end, range_end };
-			float y_limits[2] = { -1.0f, 1.0f };
-
-			// 시작 지점과 끝 지점 표시
-			ImPlot::PlotLine("Start", line_data_start, y_limits, 2);
-			ImPlot::PlotLine("End", line_data_end, y_limits, 2);
-		}
-
-		// 구간 내 데이터 수정 버튼
-		ImGui::SameLine();  // 같은 줄에 버튼을 배치
-		ImGui::BeginGroup();  // 버튼을 그룹으로 묶어서 정렬
+		updateTrajectoryArray(stencilIndex - 1);
+	}
+	if (rotEnable1 && !toggleEdit)
+	{
+		if (dir > 0)
 		{
-			bool updated = false;  // 데이터를 수정했는지 여부를 추적
-
-			if (ImGui::Button("Increase"))
-			{
-				for (int i = 0; i < num_frames; i++)
-				{
-					if (x_data[i] >= range_start && x_data[i] <= range_end)
-					{
-						y_data[i] = y_data[i] + 0.25f;  // 선택된 구간의 값 증가
-						std::cout << "Increased value at frame " << i << ": " << y_data[i] << std::endl;  // 값 출력
-						updated = true;
-					}
-				}
-			}
-
-			if (ImGui::Button("Decrease"))
-			{
-				for (int i = 0; i < num_frames; i++)
-				{
-					if (x_data[i] >= range_start && x_data[i] <= range_end)
-					{
-						y_data[i] = y_data[i] - 0.25f;  // 선택된 구간의 값 감소
-						std::cout << "Decreased value at frame " << i << ": " << y_data[i] << std::endl;  // 값 출력
-						updated = true;
-					}
-				}
-			}
-
-			// 데이터가 업데이트되면 그래프를 즉시 다시 그리기
-			if (updated)
-			{
-				ImPlot::SetNextAxesLimits(0, num_frames * time_per_frame, -1.0f, 2.0f);  // X축과 Y축 범위 업데이트
-			}
+			zval1 = zval1 - 0.1;
 		}
-		ImGui::EndGroup();  // 버튼 그룹 끝
-
-		// 그래프에서 x축은 frame, y축은 angular velocity
-		ImPlot::PlotLine("Angular Velocity", x_data.data(), y_data.data(), num_frames);
-
-		ImPlot::EndPlot();
+		else
+		{
+			zval1 = zval1 + 0.1;
+		}
+		pointTranslateX1 = zval1 * (cos(xrot * PI / 180) * sin(yrot * PI / 180));
+		pointTranslateY1 = zval1 * (sin(xrot * PI / 180));
+		pointTranslateZ1 = zval1 * (cos(xrot * PI / 180) * cos(yrot * PI / 180));
+	}
+	else if (rotEnable2 && !toggleEdit)
+	{
+		if (dir > 0)
+		{
+			zval2 = zval2 - 0.1;
+		}
+		else
+		{
+			zval2 = zval2 + 0.1;
+		}
+		pointTranslateX2 = zval2 * (cos(xrot * PI / 180) * sin(yrot * PI / 180));
+		pointTranslateY2 = zval2 * (sin(xrot * PI / 180));
+		pointTranslateZ2 = zval2 * (cos(xrot * PI / 180) * cos(yrot * PI / 180));
+	}
+	else if (rotEnable3 && !toggleEdit)
+	{
+		if (dir > 0)
+		{
+			zval3 = zval3 - 0.1;
+		}
+		else
+		{
+			zval3 = zval3 + 0.1;
+		}
+		pointTranslateX3 = zval3 * (cos(xrot * PI / 180) * sin(yrot * PI / 180));
+		pointTranslateY3 = zval3 * (sin(xrot * PI / 180));
+		pointTranslateZ3 = zval3 * (cos(xrot * PI / 180) * cos(yrot * PI / 180));
+	}
+	else if (rotEnable4 && !toggleEdit)
+	{
+		if (dir > 0)
+		{
+			zval4 = zval4 - 0.1;
+		}
+		else
+		{
+			zval4 = zval4 + 0.1;
+		}
+		pointTranslateX4 = zval4 * (cos(xrot * PI / 180) * sin(yrot * PI / 180));
+		pointTranslateY4 = zval4 * (sin(xrot * PI / 180));
+		pointTranslateZ4 = zval4 * (cos(xrot * PI / 180) * cos(yrot * PI / 180));
+	}
+	else
+	{
+		if (!toggleEdit) {
+			if (dir > 0)
+			{
+				zval = zval - 0.1;
+			}
+			else
+			{
+				zval = zval + 0.1;
+			}
+			pointTranslateX = zval * (cos(xrot * PI / 180) * sin(yrot * PI / 180));
+			pointTranslateY = zval * (sin(xrot * PI / 180));
+			pointTranslateZ = zval * (cos(xrot * PI / 180) * cos(yrot * PI / 180));
+		}
 	}
 
-	ImGui::End();
+	glutPostRedisplay();
+}
+
+/* Callback: runs in an infinte glut loop*/
+void sphereDisplay(void)
+{
+	InitializeLight();
+	glClearDepth(1.0);
+	glClearStencil(0);
+	glClearColor(0.9, 0.9, 0.9, 0.0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	glEnable(GL_POLYGON_SMOOTH);
+	glEnable(GL_STENCIL_TEST);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+	glStencilFunc(GL_ALWAYS, -1, -1);
+	glDisable(GL_TEXTURE_2D);
+	glEnable(GL_TEXTURE_2D);
+	if (sphereID <= 13)
+	{
+		drawTrajectory(ms.minWidth, ms.minHeight, ms.maxWidth, ms.maxHeight, true, pointTranslateX, pointTranslateY, pointTranslateZ, zval, 0);
+	}
+	if (sphereID > 14 && sphereID <= 15)
+	{
+		drawTrajectory(ms.minWidth, ms.maxHeight / 4, ms.maxWidth / 2, ms.maxHeight / 2, rotEnable1, pointTranslateX1, pointTranslateY1, pointTranslateZ1, zval1, 1);
+		drawTrajectory(ms.maxWidth / 2, ms.maxHeight / 4, ms.maxWidth / 2, ms.maxHeight / 2, rotEnable2, pointTranslateX2, pointTranslateY2, pointTranslateZ2, zval2, 2);
+	}
+
+	if (sphereID == 14)
+	{
+		drawTrajectory(ms.minWidth, ms.maxHeight / 2, ms.maxWidth / 2, ms.maxHeight / 2, rotEnable1, pointTranslateX1, pointTranslateY1, pointTranslateZ1, zval1, 1);
+		drawTrajectory(ms.maxWidth / 2, ms.maxHeight / 2, ms.maxWidth / 2, ms.maxHeight / 2, rotEnable2, pointTranslateX2, pointTranslateY2, pointTranslateZ2, zval2, 2);
+		drawTrajectory(ms.minWidth, ms.minHeight, ms.maxWidth / 2, ms.maxHeight / 2, rotEnable3, pointTranslateX3, pointTranslateY3, pointTranslateZ3, zval3, 3);
+		drawTrajectory(ms.maxWidth / 2, ms.minHeight, ms.maxWidth / 2, ms.maxHeight / 2, rotEnable4, pointTranslateX4, pointTranslateY4, pointTranslateZ4, zval4, 4);
+	}
+
+	if (sphereID == 16)
+	{
+		drawTrajectory(ms.minWidth, ms.maxHeight / 2, ms.maxWidth / 2, ms.maxHeight / 2, rotEnable1, pointTranslateX1, pointTranslateY1, pointTranslateZ1, zval1, 1);
+		drawTrajectory(ms.maxWidth / 2, ms.maxHeight / 2, ms.maxWidth / 2, ms.maxHeight / 2, rotEnable2, pointTranslateX2, pointTranslateY2, pointTranslateZ2, zval2, 2);
+		drawTrajectory(ms.minWidth, ms.minHeight, ms.maxWidth / 2, ms.maxHeight / 2, rotEnable3, pointTranslateX3, pointTranslateY3, pointTranslateZ3, zval3, 3);
+		drawTrajectory(ms.maxWidth / 2, ms.minHeight, ms.maxWidth / 2, ms.maxHeight / 2, rotEnable4, pointTranslateX4, pointTranslateY4, pointTranslateZ4, zval4, 4);
+	}
+
+	adjustPoint(); // Imgui
+
+	//adjustSpeed(); // Implot speed graph
+
+
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	glutSwapBuffers();
