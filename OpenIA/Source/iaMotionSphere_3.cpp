@@ -68,7 +68,7 @@ float cameraX, cameraY;
 int lastMouseX, lastMouseY;
 
 bool mouseDown = false;
-
+// edit source
 GLuint texture_id[2];
 GLUquadricObj* sphere;
 int targc;
