@@ -63,7 +63,7 @@ float pointTranslateZ3 = zval3;
 float pointTranslateX4 = 0.0f;
 float pointTranslateY4 = 0.0f;
 float pointTranslateZ4 = zval4;
-
+//edit orthor
 float cameraX, cameraY;
 int lastMouseX, lastMouseY;
 
