@@ -5,7 +5,7 @@
 #include "iaPositionTracking.h"
 #include "iaVitruvianAvatar.h"
 #include "iaSphereUtility.h"
-#include "iaAcquireGesture.h"
+#include "iaAcquireGesture.h"//edit orthre
 #include "Model_PLY.h"
 
 using namespace std;
