@@ -1,6 +1,6 @@
 ﻿#include "iaMotionSphere_3.h" //edit orthre
 #include "iaMotionSphere.h"
-#include <iostream>
+#include <iostream>//edit orthre
 #include <iomanip>
 #include "iaPositionTracking.h"
 #include "iaVitruvianAvatar.h"
