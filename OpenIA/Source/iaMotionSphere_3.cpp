@@ -118,7 +118,7 @@ float exptraj_b6[20014][4];
 float exptraj_b7[20014][4];
 float exptraj_b8[20014][4];
 float exptraj_b9[20014][4];
-
+//edit orthre
 //구 좌표계 요소 저장
 float theta_phi_b0[20014][2];
 float theta_phi_b1[20014][2];
