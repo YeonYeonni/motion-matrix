@@ -2,7 +2,7 @@
 #include "iaMotionSphere.h"
 #include <iostream>//edit orthre
 #include <iomanip>
-#include "iaPositionTracking.h"
+#include "iaPositionTracking.h"//edit orthre
 #include "iaVitruvianAvatar.h"
 #include "iaSphereUtility.h"
 #include "iaAcquireGesture.h"
