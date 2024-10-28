@@ -14,7 +14,7 @@ SphereUtility expertSU;
 Model_PLY rightHandPLY, leftHandPLY, rightFootPLY, leftFootPLY, kneePLY, elbowPLY;
 
 iaAcquireGesture AcquireSFQ2;
-
+// edit complite
 struct PixelColor {
 	GLfloat r;
 	GLfloat g;
