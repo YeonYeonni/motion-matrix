@@ -1,8 +1,8 @@
-﻿#include "iaMotionSphere_3.h" //edit orthre
+﻿#include "iaMotionSphere_3.h" 
 #include "iaMotionSphere.h"
 #include <iostream>//edit orthre
 #include <iomanip>
-#include "iaPositionTracking.h"//edit orthre
+#include "iaPositionTracking.h"
 #include "iaVitruvianAvatar.h"
 #include "iaSphereUtility.h"
 #include "iaAcquireGesture.h"//edit orthre
