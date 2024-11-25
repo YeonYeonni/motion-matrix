@@ -1920,7 +1920,7 @@ void keyBoardEvent(unsigned char key, int x, int y)
 	//		io.MouseDown[button] = true;
 	//	}
 	//	else if (state == GLUT_UP) {
-	//		io.MouseDown[button] = false;
+	//		io.MouseDown[button] = false;smf
 	//	}
 	//	io.MousePos = ImVec2((float)x, (float)y);
 
@@ -1931,7 +1931,7 @@ void keyBoardEvent(unsigned char key, int x, int y)
 	if (key == '1') //Key-1
 	{
 		realtime = false;
-		startFresh("D:\\PoseTrack19\\src\\out\\build\\SkeletonData\\2024-10-04\\FB-Raw-Data-000-122933.txt");
+		startFresh("D:\\PoseTrack19\\src\\out\\build\\SkeletonData\\FB-Raw-Data-000-11510.txt");
 	}
 
 	if (key == '2') //Key-2
@@ -1942,7 +1942,7 @@ void keyBoardEvent(unsigned char key, int x, int y)
 	if (key == '3') //Key-3
 	{
 		realtime = false;
-		startFresh("D:\\PoseTrack19\\src\\out\\build\\SkeletonData\\saveFile.txt");
+		startFresh("D:\\PoseTrack19\\src\\out\\build\\SkeletonData\\2024-10-17\\FB-Raw-Data-000-114520.txt");
 	}
 
 	if (key == '4') //Key-4
@@ -1968,42 +1968,41 @@ void keyBoardEvent(unsigned char key, int x, int y)
 
 void adjustSpeed()
 {
-
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////// Speed Editing Mode /////////////////////////////////////////////
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	int window_width = glutGet(GLUT_WINDOW_WIDTH);
 	int window_height = glutGet(GLUT_WINDOW_HEIGHT);
 
-	ImVec2 new_window_pos = ImVec2(0, window_height - 200);  // Y position at the bottom, height
-	ImVec2 new_window_size = ImVec2(window_width, 200);  // Width same as the window width, height
+	ImVec2 new_window_pos = ImVec2(0, window_height - 250);  // Y position at the bottom, height
+	ImVec2 new_window_size = ImVec2(window_width, 250);  // Width same as the window width, height
 	ImGui::SetNextWindowPos(new_window_pos);
 	ImGui::SetNextWindowSize(new_window_size);
 
-	ImGui::Begin("New Simple Window", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+	ImGui::Begin("Joint Velocity", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
-	ImVec2 plot_size = ImVec2(750, 150);
+	ImVec2 plot_size = ImVec2(1100, 200);
 
 	// x축이 데이터에 따라 변할 수 있도록 유연하게 설정
-	int num_frames = 100;  // 데이터에 따라 동적으로 설정 (예: 100 프레임)
-	float time_per_frame = 1.0f;  // 각 프레임당 시간 간격
+	int num_frames = trajCount;
+	//int num_frames = 100;
+	float time_per_frame = 1.0f;
 
 	std::vector<float> x_data(num_frames);
 	std::vector<float> y_data(num_frames);
 
 	// 데이터 초기화 (기본적으로 등속 운동)
-	for (int i = 0; i < num_frames; i++) {
+	for (int i = 0; i < num_frames; i++) 
+	{
 		x_data[i] = i * time_per_frame;  // x축은 프레임에 따라 변동
 		y_data[i] = 1.0f;  // 기본값: 등속 운동, 각속도 1
 	}
 
 	if (ImPlot::BeginPlot("Angular Velocity Graph", plot_size))
 	{
-
-		// 현재 마우스 위치에 수직선을 흰색으로 표시
 		if (ImPlot::IsPlotHovered())
 		{
-			ImPlotPoint mouse_pos = ImPlot::GetPlotMousePos();  // 현재 마우스 위치 받아오기
+			ImPlotPoint mouse_pos = ImPlot::GetPlotMousePos();  // 현재 마우스 위치
 			float line_data[2] = { mouse_pos.x, mouse_pos.x };  // 마우스 위치의 X 좌표
 			float y_limits[2] = { -1.0f, 1.0f };  // 그래프의 Y축 범위
 
@@ -2011,7 +2010,7 @@ void adjustSpeed()
 			ImPlot::PlotLine("Mouse Line", line_data, y_limits, 2);
 			ImPlot::PopStyleColor();
 
-			// 왼쪽 클릭 감지
+			// 왼쪽 클릭
 			if (ImGui::IsMouseClicked(0))
 			{
 				if (!selecting_range)
@@ -2042,33 +2041,35 @@ void adjustSpeed()
 			ImPlot::PlotLine("End", line_data_end, y_limits, 2);
 		}
 
-		// 구간 내 데이터 수정 버튼
-		ImGui::SameLine();  // 같은 줄에 버튼을 배치
-		ImGui::BeginGroup();  // 버튼을 그룹으로 묶어서 정렬
+		// 구간 내 데이터 수정
+		ImGui::SameLine();
+		ImGui::BeginGroup();
 		{
 			bool updated = false;  // 데이터를 수정했는지 여부를 추적
 
+			// 선택된 구간의 값 증가
 			if (ImGui::Button("Increase"))
 			{
 				for (int i = 0; i < num_frames; i++)
 				{
 					if (x_data[i] >= range_start && x_data[i] <= range_end)
 					{
-						y_data[i] = y_data[i] + 0.25f;  // 선택된 구간의 값 증가
-						std::cout << "Increased value at frame " << i << ": " << y_data[i] << std::endl;  // 값 출력
+						y_data[i] = y_data[i] + 0.25f;
+						std::cout << "Increased value at frame " << i << ": " << y_data[i] << std::endl;
 						updated = true;
 					}
 				}
 			}
 
+			// 선택된 구간의 값 감소
 			if (ImGui::Button("Decrease"))
 			{
 				for (int i = 0; i < num_frames; i++)
 				{
 					if (x_data[i] >= range_start && x_data[i] <= range_end)
 					{
-						y_data[i] = y_data[i] - 0.25f;  // 선택된 구간의 값 감소
-						std::cout << "Decreased value at frame " << i << ": " << y_data[i] << std::endl;  // 값 출력
+						y_data[i] = y_data[i] - 0.25f;
+						std::cout << "Decreased value at frame " << i << ": " << y_data[i] << std::endl;
 						updated = true;
 					}
 				}
@@ -2080,14 +2081,11 @@ void adjustSpeed()
 				ImPlot::SetNextAxesLimits(0, num_frames * time_per_frame, -1.0f, 2.0f);  // X축과 Y축 범위 업데이트
 			}
 		}
-		ImGui::EndGroup();  // 버튼 그룹 끝
+		ImGui::EndGroup();
 
-		// 그래프에서 x축은 frame, y축은 angular velocity
 		ImPlot::PlotLine("Angular Velocity", x_data.data(), y_data.data(), num_frames);
-
 		ImPlot::EndPlot();
 	}
-
 	ImGui::End();
 }
 
@@ -2785,56 +2783,56 @@ void adjustPoint()
 					float adjustment = factor * abs(i - middle_index);  // 중간 프레임과의 거리만큼 간격을 벌림
 
 				// 중간보다 위쪽 프레임은 위로, 아래쪽 프레임은 아래로 이동
-					if (i < middle_index)
-					{
-						quaternion adjustment_q = quaternion(
-							q.mData[0] - adjustment * -0.0087155743,
-							q.mData[1],
-							q.mData[2] - adjustment * 5.33894E-18,
-							q.mData[3]
-						);
+				if (i < middle_index)
+				{
+					quaternion adjustment_q = quaternion(
+						q.mData[0] - adjustment * -0.0087155743, 
+						q.mData[1], 
+						q.mData[2] - adjustment * 5.33894E-18,
+						q.mData[3]
+					);
 
-						// 각 sphereID에 맞게 쿼터니언을 적용
-						switch (sphereID)
-						{
-						case 0: ms.su->avatarData[i].b0 = adjustment_q.mutiplication(ms.su->avatarData[i].b0); break;
-						case 1: ms.su->avatarData[i].b1 = adjustment_q.mutiplication(ms.su->avatarData[i].b1); break;
-						case 2: ms.su->avatarData[i].b2 = adjustment_q.mutiplication(ms.su->avatarData[i].b2); break;
-						case 3: ms.su->avatarData[i].b3 = adjustment_q.mutiplication(ms.su->avatarData[i].b3); break;
-						case 4: ms.su->avatarData[i].b4 = adjustment_q.mutiplication(ms.su->avatarData[i].b4); break;
-						case 5: ms.su->avatarData[i].b5 = adjustment_q.mutiplication(ms.su->avatarData[i].b5); break;
-						case 6: ms.su->avatarData[i].b6 = adjustment_q.mutiplication(ms.su->avatarData[i].b6); break;
-						case 7: ms.su->avatarData[i].b7 = adjustment_q.mutiplication(ms.su->avatarData[i].b7); break;
-						case 8: ms.su->avatarData[i].b8 = adjustment_q.mutiplication(ms.su->avatarData[i].b8); break;
-						case 9: ms.su->avatarData[i].b9 = adjustment_q.mutiplication(ms.su->avatarData[i].b9); break;
-						default: break;
-						}
-					}
-					else if (i > middle_index)
+					// 각 sphereID에 맞게 쿼터니언을 적용
+					switch (sphereID)
 					{
-						quaternion adjustment_q = quaternion(
-							q.mData[0] + adjustment * -0.0087155743,
-							q.mData[1],
-							q.mData[2] + adjustment * 5.33894E-18,
-							q.mData[3]
-						);
-
-						// 각 sphereID에 맞게 쿼터니언을 적용
-						switch (sphereID)
-						{
-						case 0: ms.su->avatarData[i].b0 = adjustment_q.mutiplication(ms.su->avatarData[i].b0); break;
-						case 1: ms.su->avatarData[i].b1 = adjustment_q.mutiplication(ms.su->avatarData[i].b1); break;
-						case 2: ms.su->avatarData[i].b2 = adjustment_q.mutiplication(ms.su->avatarData[i].b2); break;
-						case 3: ms.su->avatarData[i].b3 = adjustment_q.mutiplication(ms.su->avatarData[i].b3); break;
-						case 4: ms.su->avatarData[i].b4 = adjustment_q.mutiplication(ms.su->avatarData[i].b4); break;
-						case 5: ms.su->avatarData[i].b5 = adjustment_q.mutiplication(ms.su->avatarData[i].b5); break;
-						case 6: ms.su->avatarData[i].b6 = adjustment_q.mutiplication(ms.su->avatarData[i].b6); break;
-						case 7: ms.su->avatarData[i].b7 = adjustment_q.mutiplication(ms.su->avatarData[i].b7); break;
-						case 8: ms.su->avatarData[i].b8 = adjustment_q.mutiplication(ms.su->avatarData[i].b8); break;
-						case 9: ms.su->avatarData[i].b9 = adjustment_q.mutiplication(ms.su->avatarData[i].b9); break;
-						default: break;
-						}
+					case 0: ms.su->avatarData[i].b0 = adjustment_q.mutiplication(ms.su->avatarData[i].b0); break;
+					case 1: ms.su->avatarData[i].b1 = adjustment_q.mutiplication(ms.su->avatarData[i].b1); break;
+					case 2: ms.su->avatarData[i].b2 = adjustment_q.mutiplication(ms.su->avatarData[i].b2); break;
+					case 3: ms.su->avatarData[i].b3 = adjustment_q.mutiplication(ms.su->avatarData[i].b3); break;
+					case 4: ms.su->avatarData[i].b4 = adjustment_q.mutiplication(ms.su->avatarData[i].b4); break;
+					case 5: ms.su->avatarData[i].b5 = adjustment_q.mutiplication(ms.su->avatarData[i].b5); break;
+					case 6: ms.su->avatarData[i].b6 = adjustment_q.mutiplication(ms.su->avatarData[i].b6); break;
+					case 7: ms.su->avatarData[i].b7 = adjustment_q.mutiplication(ms.su->avatarData[i].b7); break;
+					case 8: ms.su->avatarData[i].b8 = adjustment_q.mutiplication(ms.su->avatarData[i].b8); break;
+					case 9: ms.su->avatarData[i].b9 = adjustment_q.mutiplication(ms.su->avatarData[i].b9); break;
+					default: break;
 					}
+				}
+				else if (i > middle_index)
+				{
+					quaternion adjustment_q = quaternion(
+						q.mData[0] + adjustment * -0.0087155743, 
+						q.mData[1], 
+						q.mData[2] + adjustment * 5.33894E-18, 
+						q.mData[3]
+					);
+
+					// 각 sphereID에 맞게 쿼터니언을 적용
+					switch (sphereID)
+					{
+					case 0: ms.su->avatarData[i].b0 = adjustment_q.mutiplication(ms.su->avatarData[i].b0); break;
+					case 1: ms.su->avatarData[i].b1 = adjustment_q.mutiplication(ms.su->avatarData[i].b1); break;
+					case 2: ms.su->avatarData[i].b2 = adjustment_q.mutiplication(ms.su->avatarData[i].b2); break;
+					case 3: ms.su->avatarData[i].b3 = adjustment_q.mutiplication(ms.su->avatarData[i].b3); break;
+					case 4: ms.su->avatarData[i].b4 = adjustment_q.mutiplication(ms.su->avatarData[i].b4); break;
+					case 5: ms.su->avatarData[i].b5 = adjustment_q.mutiplication(ms.su->avatarData[i].b5); break;
+					case 6: ms.su->avatarData[i].b6 = adjustment_q.mutiplication(ms.su->avatarData[i].b6); break;
+					case 7: ms.su->avatarData[i].b7 = adjustment_q.mutiplication(ms.su->avatarData[i].b7); break;
+					case 8: ms.su->avatarData[i].b8 = adjustment_q.mutiplication(ms.su->avatarData[i].b8); break;
+					case 9: ms.su->avatarData[i].b9 = adjustment_q.mutiplication(ms.su->avatarData[i].b9); break;
+					default: break;
+					}
+				}
 
 					// 배열 업데이트
 					updateTrajectoryArray(i - 1);
@@ -3242,7 +3240,7 @@ void sphereDisplay(void)
 
 	adjustPoint(); // Imgui
 
-	//adjustSpeed(); // Implot speed graph
+	adjustSpeed(); // Implot speed graph
 
 
 	ImGui::Render();
