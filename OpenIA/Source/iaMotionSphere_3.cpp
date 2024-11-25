@@ -1,6 +1,6 @@
-﻿#include "iaMotionSphere_3.h"
+﻿#include "iaMotionSphere_3.h" 
 #include "iaMotionSphere.h"
-#include <iostream>
+#include <iostream>//edit orthre
 #include <iomanip>
 #include "iaPositionTracking.h"
 #include "iaVitruvianAvatar.h"
@@ -63,12 +63,12 @@ float pointTranslateZ3 = zval3;
 float pointTranslateX4 = 0.0f;
 float pointTranslateY4 = 0.0f;
 float pointTranslateZ4 = zval4;
-
+//edit orthor
 float cameraX, cameraY;
 int lastMouseX, lastMouseY;
 
 bool mouseDown = false;
-
+// edit source
 GLuint texture_id[2];
 GLUquadricObj* sphere;
 int targc;
@@ -107,7 +107,7 @@ float traj_b6[20014][4];
 float traj_b7[20014][4];
 float traj_b8[20014][4];
 float traj_b9[20014][4];
-
+//edit orthre
 float exptraj_b0[20014][4];
 float exptraj_b1[20014][4];
 float exptraj_b2[20014][4];
@@ -118,7 +118,7 @@ float exptraj_b6[20014][4];
 float exptraj_b7[20014][4];
 float exptraj_b8[20014][4];
 float exptraj_b9[20014][4];
-
+//edit orthre
 //구 좌표계 요소 저장
 float theta_phi_b0[20014][2];
 float theta_phi_b1[20014][2];
@@ -189,7 +189,7 @@ void drawString(const char* str, float x, float y, float color[4], void* font)
 	glDepthFunc(GL_LEQUAL);
 	glPopAttrib();
 }
-
+//edit orthre
 ///////////////////////////////////////////////////////////////////////////////
 // draw a string in 3D space
 ///////////////////////////////////////////////////////////////////////////////
@@ -333,7 +333,7 @@ void renderCylinder(float x1, float y1, float z1, float x2, float y2, float z2, 
 		if (vz <= 0.0)
 			ax = -ax;
 	}
-
+//edit orthre
 	float rx = -vy * vz;
 	float ry = vx * vz;
 
