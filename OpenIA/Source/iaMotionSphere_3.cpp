@@ -7,7 +7,7 @@
 #include "iaSphereUtility.h"
 #include "iaAcquireGesture.h"
 #include "Model_PLY.h"
-//overloadFG
+
 using namespace std;
 MotionSphere ms;
 SphereUtility expertSU;
