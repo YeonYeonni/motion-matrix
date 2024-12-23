@@ -21,7 +21,7 @@ struct PixelColor {
 	GLfloat b;
 	GLfloat a;
 };
-
+//fix by jun
 struct StencilHash
 {
 	int stencilIndex;
