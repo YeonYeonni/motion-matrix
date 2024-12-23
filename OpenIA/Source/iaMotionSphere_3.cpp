@@ -7,7 +7,7 @@
 #include "iaSphereUtility.h"
 #include "iaAcquireGesture.h"
 #include "Model_PLY.h"
-//overload
+
 using namespace std;
 MotionSphere ms;
 SphereUtility expertSU;
@@ -21,7 +21,7 @@ struct PixelColor {
 	GLfloat b;
 	GLfloat a;
 };
-
+//fix by jun
 struct StencilHash
 {
 	int stencilIndex;
@@ -43,7 +43,7 @@ float zval2 = 1.5f;
 float zval3 = 1.5f;
 float zval4 = 1.5f;
 PixelColor pixelColor, pointColor;
-
+float pointTranslatexd= 0.0f;
 float pointTranslateX = 0.0f;
 float pointTranslateY = 0.0f;
 float pointTranslateZ = zval;
