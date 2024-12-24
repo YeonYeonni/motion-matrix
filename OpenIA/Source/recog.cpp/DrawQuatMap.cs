@@ -47,3 +47,4 @@ public class DrawQuatMap : MonoBehaviour
     public Color HandDefaultColor;
     public Color HandEdgeColor;
     public Color UpperPatternColor;
+    public Color UpperEdgeColor;
