@@ -40,3 +40,4 @@ public class DrawQuatMap : MonoBehaviour
     public GameObject ListParent;
     public List<GameObject> BeadList;
     public List<Quaternion> BoneLocalQuat;
+    public List<Vector3> BoneLocalEuler;
