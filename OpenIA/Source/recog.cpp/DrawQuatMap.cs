@@ -30,3 +30,5 @@ public class DrawQuatMap : MonoBehaviour
     int Drawing_index = 0;
     public GameObject AxisGroupArm, AxisGroupHand, AxisGroupLowerHand;
     public List<float> angleList;
+    float Radian2Degree = 180 / Mathf.PI;
+    float Degree2Radian = Mathf.PI / 180;
