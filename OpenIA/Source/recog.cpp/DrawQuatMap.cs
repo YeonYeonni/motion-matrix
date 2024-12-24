@@ -19,3 +19,4 @@ public class DrawQuatMap : MonoBehaviour
     public List<Vector3> AxisPosListArm;    //유니티 좌표계 기준 벡터 값들
     public List<Vector3> AxisPosListHand;
     public List<Quaternion> filtered_quat;
+    public List<Quaternion> QuatMapDataList;      //선택된 부위를 좌표계 변환 후 저장
