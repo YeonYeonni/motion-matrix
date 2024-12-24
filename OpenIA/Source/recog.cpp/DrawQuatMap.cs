@@ -43,3 +43,4 @@ public class DrawQuatMap : MonoBehaviour
     public List<Vector3> BoneLocalEuler;
     public List<GameObject> SelectedHandPattern;
     public List<int> SelectedHandIndex;
+    public Color HandPatternColor;
