@@ -8,3 +8,7 @@ This project is a continuation of VE Lab's ongoing efforts to explore the inters
 
 🌟 Key Features
 Real-Time Motion Recognition: Tracks and analyzes user movements in 3D space using a spherical coordinate system.
+Spherical Visualization: Visualizes motion paths on a virtual sphere to enhance understanding and feedback.
+Customizable Training Scenarios: Supports the creation of bespoke motion-based tasks for research or practical training.
+Unity Integration: Designed to work natively with Unity, ensuring ease of use and flexibility for developers.
+Data-Driven Evaluation: Provides motion similarity analysis with error margins, enabling quantitative assessments.
