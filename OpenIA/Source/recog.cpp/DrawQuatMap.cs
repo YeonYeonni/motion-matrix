@@ -16,3 +16,4 @@ public class DrawQuatMap : MonoBehaviour
    public GameObject Bead1_2, Bead1_3, Bead2_2, Bead2_3, Bead3_2, Bead3_3; //구슬 재질 저장
     GameObject selectedBead;    //구슬 재질 선택
     bool fulldrawing = false;   //전체 그리기
+    public List<Vector3> AxisPosListArm;    //유니티 좌표계 기준 벡터 값들
