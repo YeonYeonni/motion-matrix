@@ -70,3 +70,7 @@ public class DrawQuatMap : MonoBehaviour
         BeadList = new List<GameObject>();
         SelectedHandIndex = new List<int>();
         SelectedHandPattern = new List<GameObject>();
+for (int i = 0; i < 24; i++)     //0번, 1~11 +각도, -1~-11 -각도, 12번
+{
+    BeadList.Add(ListParent.transform.GetChild(i).gameObject);
+}
