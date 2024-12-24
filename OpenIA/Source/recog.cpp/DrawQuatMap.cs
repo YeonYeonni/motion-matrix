@@ -55,3 +55,4 @@ public class DrawQuatMap : MonoBehaviour
     //HandPatternColor = new Color(55, 0, 179, 70);
 //HandDefaultEdgeColor = new Color(255, 238, 0, 100);
         ArmTest = FindObjectOfType<ArmMotion>();
+ QuatMapDataList = new List<Quaternion>();
