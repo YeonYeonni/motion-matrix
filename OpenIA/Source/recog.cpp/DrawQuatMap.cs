@@ -14,3 +14,4 @@ public class DrawQuatMap : MonoBehaviour
    public Transform Dis1BeadList, Dis2BeadList, Dis3BeadList, Dis4BeadList;
    public int framecount = 0;
    public GameObject Bead1_2, Bead1_3, Bead2_2, Bead2_3, Bead3_2, Bead3_3; //구슬 재질 저장
+    GameObject selectedBead;    //구슬 재질 선택
