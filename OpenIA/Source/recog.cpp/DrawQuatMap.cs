@@ -56,3 +56,5 @@ public class DrawQuatMap : MonoBehaviour
 //HandDefaultEdgeColor = new Color(255, 238, 0, 100);
         ArmTest = FindObjectOfType<ArmMotion>();
  QuatMapDataList = new List<Quaternion>();
+         AxisPosListArm = new List<Vector3>();
+
