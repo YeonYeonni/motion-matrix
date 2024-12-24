@@ -65,4 +65,5 @@ public class DrawQuatMap : MonoBehaviour
         Bone_Angle_List_Hand = new List<float>();
         Before_pos_List_arm = new List<Vector3>();
         Before_pos_List_hand = new List<Vector3>();
+        Before_Front_List = new List<Vector3>();
 
