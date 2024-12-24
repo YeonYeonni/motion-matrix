@@ -48,3 +48,4 @@ public class DrawQuatMap : MonoBehaviour
     public Color HandEdgeColor;
     public Color UpperPatternColor;
     public Color UpperEdgeColor;
+    MaterialPropertyBlock propertyTest;
