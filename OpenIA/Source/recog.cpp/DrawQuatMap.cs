@@ -36,3 +36,4 @@ public class DrawQuatMap : MonoBehaviour
     public List<float> Bone_Angle_List_Hand;
     public List<Vector3> Before_pos_List_arm;   //센서 좌표계 기준 벡터 값들
     public List<Vector3> Before_pos_List_hand;
+    public List<Vector3> Before_Front_List;
