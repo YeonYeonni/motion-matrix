@@ -62,4 +62,5 @@ public class DrawQuatMap : MonoBehaviour
         angleList = new List<float>();
         filtered_quat = new List<Quaternion>();
         Bone_Angle_List_Arm = new List<float>();
+        Bone_Angle_List_Hand = new List<float>();
 
