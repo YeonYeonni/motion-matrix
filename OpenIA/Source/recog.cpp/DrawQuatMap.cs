@@ -22,3 +22,4 @@ public class DrawQuatMap : MonoBehaviour
     public List<Quaternion> QuatMapDataList;      //선택된 부위를 좌표계 변환 후 저장
     public List<Vector3> VectorList = new List<Vector3>();
     List<Quaternion> Original_Quat_List_Hand = new List<Quaternion>();
+    bool QuatmapOn = false;
