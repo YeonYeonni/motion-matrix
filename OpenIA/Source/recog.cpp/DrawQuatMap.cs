@@ -11,3 +11,5 @@ public class DrawQuatMap : MonoBehaviour
   public ArmMotion ArmTest;
   public FilterData Filtering;
 
+   public Transform Dis1BeadList, Dis2BeadList, Dis3BeadList, Dis4BeadList;
+   public int framecount = 0;
