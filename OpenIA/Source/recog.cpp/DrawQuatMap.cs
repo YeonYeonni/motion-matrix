@@ -67,3 +67,4 @@ public class DrawQuatMap : MonoBehaviour
         Before_pos_List_hand = new List<Vector3>();
         Before_Front_List = new List<Vector3>();
 
+        BeadList = new List<GameObject>();
