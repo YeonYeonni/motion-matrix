@@ -49,3 +49,6 @@ public class DrawQuatMap : MonoBehaviour
     public Color UpperPatternColor;
     public Color UpperEdgeColor;
     MaterialPropertyBlock propertyTest;
+        void Start()
+    {
+        ArmTest = FindObjectOfType<ArmMotion>();
