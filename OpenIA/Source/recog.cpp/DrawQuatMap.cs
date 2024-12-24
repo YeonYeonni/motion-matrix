@@ -25,3 +25,4 @@ public class DrawQuatMap : MonoBehaviour
     bool QuatmapOn = false;
     bool StartDrawPattern = false;
     public int selectedPart = 1;        //1 - 어깨, 2 - 팔꿈치, 3 - 손
+    GameObject SelectedPattern;
