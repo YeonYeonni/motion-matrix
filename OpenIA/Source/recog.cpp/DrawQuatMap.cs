@@ -32,3 +32,4 @@ public class DrawQuatMap : MonoBehaviour
     public List<float> angleList;
     float Radian2Degree = 180 / Mathf.PI;
     float Degree2Radian = Mathf.PI / 180;
+    public List<float> Bone_Angle_List_Arm;
