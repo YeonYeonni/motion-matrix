@@ -13,6 +13,7 @@ MotionSphere ms;
 SphereUtility expertSU;
 Model_PLY rightHandPLY, leftHandPLY, rightFootPLY, leftFootPLY, kneePLY, elbowPLY;
 
+//rememberme
 iaAcquireGesture AcquireSFQ2;
 // edit complite
 struct PixelColor {
