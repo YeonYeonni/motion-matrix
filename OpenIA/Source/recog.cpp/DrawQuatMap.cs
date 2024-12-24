@@ -26,3 +26,4 @@ public class DrawQuatMap : MonoBehaviour
     bool StartDrawPattern = false;
     public int selectedPart = 1;        //1 - 어깨, 2 - 팔꿈치, 3 - 손
     GameObject SelectedPattern;
+    int updated_index = 0;  //가장 마지막에 그린 패턴의 위치 index
