@@ -60,4 +60,5 @@ public class DrawQuatMap : MonoBehaviour
          AxisPosListHand = new List<Vector3>();
         selectedBead = Bead1;
         angleList = new List<float>();
+        filtered_quat = new List<Quaternion>();
 
