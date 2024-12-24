@@ -61,4 +61,5 @@ public class DrawQuatMap : MonoBehaviour
         selectedBead = Bead1;
         angleList = new List<float>();
         filtered_quat = new List<Quaternion>();
+        Bone_Angle_List_Arm = new List<float>();
 
