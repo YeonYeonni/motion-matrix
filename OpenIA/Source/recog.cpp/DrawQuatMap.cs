@@ -69,3 +69,4 @@ public class DrawQuatMap : MonoBehaviour
 
         BeadList = new List<GameObject>();
         SelectedHandIndex = new List<int>();
+        SelectedHandPattern = new List<GameObject>();
