@@ -44,3 +44,4 @@ public class DrawQuatMap : MonoBehaviour
     public List<GameObject> SelectedHandPattern;
     public List<int> SelectedHandIndex;
     public Color HandPatternColor;
+    public Color HandDefaultColor;
