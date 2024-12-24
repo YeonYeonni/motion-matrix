@@ -34,3 +34,4 @@ public class DrawQuatMap : MonoBehaviour
     float Degree2Radian = Mathf.PI / 180;
     public List<float> Bone_Angle_List_Arm;
     public List<float> Bone_Angle_List_Hand;
+    public List<Vector3> Before_pos_List_arm;   //센서 좌표계 기준 벡터 값들
