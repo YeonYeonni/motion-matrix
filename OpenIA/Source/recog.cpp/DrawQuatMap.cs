@@ -23,3 +23,4 @@ public class DrawQuatMap : MonoBehaviour
     public List<Vector3> VectorList = new List<Vector3>();
     List<Quaternion> Original_Quat_List_Hand = new List<Quaternion>();
     bool QuatmapOn = false;
+    bool StartDrawPattern = false;
