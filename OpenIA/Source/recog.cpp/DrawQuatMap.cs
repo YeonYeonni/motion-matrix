@@ -57,4 +57,5 @@ public class DrawQuatMap : MonoBehaviour
         ArmTest = FindObjectOfType<ArmMotion>();
  QuatMapDataList = new List<Quaternion>();
          AxisPosListArm = new List<Vector3>();
+         AxisPosListHand = new List<Vector3>();
 
