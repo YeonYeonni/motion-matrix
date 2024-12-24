@@ -28,3 +28,4 @@ public class DrawQuatMap : MonoBehaviour
     GameObject SelectedPattern;
     int updated_index = 0;  //가장 마지막에 그린 패턴의 위치 index
     int Drawing_index = 0;
+    public GameObject AxisGroupArm, AxisGroupHand, AxisGroupLowerHand;
